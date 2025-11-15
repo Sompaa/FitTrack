@@ -2,10 +2,24 @@
 const CONFIG = {
   API_BASE_URL: window.location.origin + '/api',
   GOOGLE_MAPS_API_KEY: 'AIzaSyDX-UpzDMmRfV-_1QO8ebqAtz1crtn8iPo',
-  DEFAULT_MAP_CENTER: { lat: 47.5316, lng: 21.6273 }, // Debrecen, Hungary (default)
+  DEFAULT_MAP_CENTER: { lat: 46.2530, lng: 20.1414 }, // Szeged, Hungary (default)
   DEFAULT_MAP_ZOOM: 13,
   STORAGE_KEY: 'fittrack_token',
-  USER_KEY: 'fittrack_user'
+  USER_KEY: 'fittrack_user',
+
+  // Popular cities for selection
+  CITIES: {
+    'Szeged': { lat: 46.2530, lng: 20.1414 },
+    'Budapest': { lat: 47.4979, lng: 19.0402 },
+    'Debrecen': { lat: 47.5316, lng: 21.6273 },
+    'Pécs': { lat: 46.0727, lng: 18.2328 },
+    'Győr': { lat: 47.6875, lng: 17.6504 },
+    'Miskolc': { lat: 48.1035, lng: 20.7784 },
+    'Székesfehérvár': { lat: 47.1900, lng: 18.4108 },
+    'Kecskemét': { lat: 46.9065, lng: 19.6908 },
+    'Nyíregyháza': { lat: 47.9556, lng: 21.7272 },
+    'Szombathely': { lat: 47.2306, lng: 16.6218 }
+  }
 };
 
 // Helper functions
