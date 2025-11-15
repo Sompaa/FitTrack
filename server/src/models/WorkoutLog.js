@@ -66,7 +66,7 @@ workoutLogSchema.statics.getStats = async function(userId, days = 30) {
   const stats = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         date: { $gte: startDate }
       }
     },
