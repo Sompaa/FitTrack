@@ -328,34 +328,78 @@ Router.addRoute('recipes', async (container) => {
 
     const grid = document.getElementById('recipes-grid');
 
-    if (recipes.length === 0) {
-      grid.innerHTML = '<div class="col-12"><p>No recipes available yet.</p></div>';
-    } else {
-      recipes.forEach(recipe => {
-        grid.innerHTML += `
-          <div class="col-md-4 mb-4">
-            <div class="card recipe-card h-100">
-              <img src="${recipe.imageUrl}" class="card-img-top" alt="${recipe.name}">
-              <div class="card-body">
-                <h5 class="card-title">${recipe.name}</h5>
-                <p class="card-text text-muted small">
-                  <i class="fas fa-clock me-1"></i>${recipe.prepTime + recipe.cookTime} min
-                  <i class="fas fa-fire ms-2 me-1"></i>${recipe.nutrition.calories} cal
-                  <i class="fas fa-utensils ms-2 me-1"></i>${recipe.servings} servings
-                </p>
-                <div class="mb-2">
-                  ${recipe.dietaryInfo.vegan ? '<span class="badge bg-success">Vegan</span>' : ''}
-                  ${recipe.dietaryInfo.vegetarian ? '<span class="badge bg-success">Vegetarian</span>' : ''}
-                  ${recipe.dietaryInfo.keto ? '<span class="badge bg-info">Keto</span>' : ''}
-                  ${recipe.dietaryInfo.glutenFree ? '<span class="badge bg-warning">Gluten-Free</span>' : ''}
+    // Function to render recipes
+    const renderRecipes = (recipesToShow) => {
+      if (recipesToShow.length === 0) {
+        grid.innerHTML = '<div class="col-12"><p>No recipes match your filters.</p></div>';
+      } else {
+        grid.innerHTML = '';
+        recipesToShow.forEach(recipe => {
+          grid.innerHTML += `
+            <div class="col-md-4 mb-4">
+              <div class="card recipe-card h-100">
+                <img src="${recipe.imageUrl}" class="card-img-top" alt="${recipe.name}">
+                <div class="card-body">
+                  <h5 class="card-title">${recipe.name}</h5>
+                  <p class="card-text text-muted small">
+                    <i class="fas fa-clock me-1"></i>${recipe.prepTime + recipe.cookTime} min
+                    <i class="fas fa-fire ms-2 me-1"></i>${recipe.nutrition.calories} cal
+                    <i class="fas fa-utensils ms-2 me-1"></i>${recipe.servings} servings
+                  </p>
+                  <div class="mb-2">
+                    ${recipe.dietaryInfo.vegan ? '<span class="badge bg-success">Vegan</span>' : ''}
+                    ${recipe.dietaryInfo.vegetarian ? '<span class="badge bg-success">Vegetarian</span>' : ''}
+                    ${recipe.dietaryInfo.keto ? '<span class="badge bg-info">Keto</span>' : ''}
+                    ${recipe.dietaryInfo.glutenFree ? '<span class="badge bg-warning">Gluten-Free</span>' : ''}
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="viewRecipe('${recipe._id}')">View Recipe</button>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="viewRecipe('${recipe._id}')">View Recipe</button>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        });
+      }
+    };
+
+    // Function to apply filters
+    const applyFilters = () => {
+      const searchTerm = document.getElementById('recipe-search').value.toLowerCase();
+      const veganFilter = document.getElementById('filter-vegan').checked;
+      const vegetarianFilter = document.getElementById('filter-vegetarian').checked;
+      const ketoFilter = document.getElementById('filter-keto').checked;
+      const glutenFreeFilter = document.getElementById('filter-gluten-free').checked;
+
+      let filtered = recipes.filter(recipe => {
+        // Search filter
+        const matchesSearch = !searchTerm ||
+          recipe.name.toLowerCase().includes(searchTerm) ||
+          recipe.description.toLowerCase().includes(searchTerm);
+
+        // Dietary filters (OR logic - show if ANY filter matches)
+        const hasActiveFilters = veganFilter || vegetarianFilter || ketoFilter || glutenFreeFilter;
+        const matchesDietary = !hasActiveFilters || (
+          (veganFilter && recipe.dietaryInfo.vegan) ||
+          (vegetarianFilter && recipe.dietaryInfo.vegetarian) ||
+          (ketoFilter && recipe.dietaryInfo.keto) ||
+          (glutenFreeFilter && recipe.dietaryInfo.glutenFree)
+        );
+
+        return matchesSearch && matchesDietary;
       });
-    }
+
+      renderRecipes(filtered);
+    };
+
+    // Initial render
+    renderRecipes(recipes);
+
+    // Add event listeners for filters
+    document.getElementById('recipe-search').addEventListener('input', applyFilters);
+    document.getElementById('filter-vegan').addEventListener('change', applyFilters);
+    document.getElementById('filter-vegetarian').addEventListener('change', applyFilters);
+    document.getElementById('filter-keto').addEventListener('change', applyFilters);
+    document.getElementById('filter-gluten-free').addEventListener('change', applyFilters);
+
   } catch (error) {
     Utils.showAlert('Error loading recipes: ' + error.message, 'danger');
   }
@@ -851,7 +895,6 @@ window.initializeMap = () => {
   map = new google.maps.Map(mapElement, {
     center: CONFIG.DEFAULT_MAP_CENTER,
     zoom: CONFIG.DEFAULT_MAP_ZOOM,
-    mapId: 'FITTRACK_MAP', // Required for advanced markers
     styles: [
       {
         featureType: 'poi',
