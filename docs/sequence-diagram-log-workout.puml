@@ -1,0 +1,175 @@
+@startuml FitTrack - Log Workout Sequence Diagram
+
+!define PRIMARY_COLOR #2196F3
+!define SUCCESS_COLOR #4CAF50
+!define ERROR_COLOR #F44336
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 150
+skinparam sequenceParticipant underline
+
+title User Logs a Completed Workout
+
+actor "Authenticated\nUser" as User
+participant "Browser\n(Client)" as Browser
+participant "Router" as Router
+participant "API Client" as API
+participant "Auth\nMiddleware" as Auth
+participant "Workout\nController" as Controller
+participant "Workout\nModel" as WorkoutModel
+participant "WorkoutLog\nModel" as LogModel
+database "MongoDB" as DB
+
+== Authentication Check ==
+
+User -> Browser: Click "Log Workout"\nfor specific workout
+activate Browser
+
+Browser -> Router: Navigate to\nlog workout modal
+activate Router
+
+Router -> Browser: Display workout\nlog form
+deactivate Router
+
+User -> Browser: Fill form:\n- Duration: 30 min\n- Calories: 250\n- Difficulty: 3/5\n- Notes: "Felt great!"
+
+User -> Browser: Submit form
+
+== API Request ==
+
+Browser -> API: POST /api/workouts/log\n{\n  workoutId: "abc123",\n  duration: 30,\n  caloriesBurned: 250,\n  difficulty: 3,\n  notes: "Felt great!"\n}
+activate API
+
+API -> API: Get JWT token\nfrom localStorage
+
+API -> Controller: POST request with\nAuthorization header
+activate Controller
+
+== Middleware Processing ==
+
+Controller -> Auth: Verify JWT token
+activate Auth
+
+Auth -> Auth: Decode token\nExtract userId
+
+alt Token is valid
+  Auth --> Controller: User authenticated\nreq.user = {userId, email}
+  deactivate Auth
+else Token is invalid/expired
+  Auth --> Controller: 401 Unauthorized
+  deactivate Auth
+  Controller --> API: Error: Not authenticated
+  API --> Browser: Show error message
+  Browser --> User: "Please login again"
+  deactivate API
+  deactivate Controller
+  deactivate Browser
+  [<- User
+end
+
+== Validate Workout Exists ==
+
+Controller -> WorkoutModel: findById(workoutId)
+activate WorkoutModel
+
+WorkoutModel -> DB: Query:\ndb.workouts.findOne(\n  {_id: "abc123"}\n)
+activate DB
+
+DB --> WorkoutModel: Workout document
+deactivate DB
+
+alt Workout exists
+  WorkoutModel --> Controller: Workout found
+  deactivate WorkoutModel
+else Workout not found
+  WorkoutModel --> Controller: null
+  deactivate WorkoutModel
+  Controller --> API: 404 Not Found
+  API --> Browser: Show error
+  Browser --> User: "Workout not found"
+  deactivate API
+  deactivate Controller
+  deactivate Browser
+  [<- User
+end
+
+== Create Workout Log ==
+
+Controller -> LogModel: create({\n  userId: req.user._id,\n  workoutId: "abc123",\n  duration: 30,\n  caloriesBurned: 250,\n  difficulty: 3,\n  notes: "Felt great!",\n  date: Date.now()\n})
+activate LogModel
+
+LogModel -> DB: Insert:\ndb.workoutlogs.insertOne({\n  userId: ObjectId("user123"),\n  workoutId: ObjectId("abc123"),\n  duration: 30,\n  caloriesBurned: 250,\n  difficulty: 3,\n  notes: "Felt great!",\n  date: ISODate("2025-01-15"),\n  completed: true,\n  createdAt: ISODate("2025-01-15")\n})
+activate DB
+
+DB --> LogModel: Inserted document\nwith _id
+deactivate DB
+
+LogModel --> Controller: WorkoutLog created
+deactivate LogModel
+
+== Populate Workout Details ==
+
+Controller -> LogModel: populate('workoutId')
+activate LogModel
+
+LogModel -> DB: Query:\ndb.workouts.findOne(\n  {_id: "abc123"}\n)
+activate DB
+
+DB --> LogModel: Workout details
+deactivate DB
+
+LogModel --> Controller: WorkoutLog with\npopulated workout
+deactivate LogModel
+
+== Success Response ==
+
+Controller --> API: 201 Created\n{\n  success: true,\n  data: {\n    _id: "log456",\n    userId: "user123",\n    workoutId: {\n      _id: "abc123",\n      name: "HIIT Workout",\n      duration: 30,\n      ...\n    },\n    duration: 30,\n    caloriesBurned: 250,\n    difficulty: 3,\n    notes: "Felt great!",\n    completed: true\n  }\n}
+deactivate Controller
+
+API --> Browser: Workout logged successfully
+deactivate API
+
+Browser -> Browser: Update UI:\n- Show success message\n- Close modal\n- Refresh workout history
+
+Browser --> User: "Workout logged successfully!\n30 minutes - 250 calories burned"
+deactivate Browser
+
+== Update Dashboard Stats ==
+
+User -> Browser: Navigate to Dashboard
+activate Browser
+
+Browser -> API: GET /api/users/me/stats?days=30
+activate API
+
+API -> Controller: Request with auth token
+activate Controller
+
+Controller -> LogModel: getStats(userId, 30)
+activate LogModel
+
+LogModel -> DB: Aggregate:\ndb.workoutlogs.aggregate([\n  {$match: {\n    userId: ObjectId("user123"),\n    date: {$gte: Date.now() - 30 days}\n  }},\n  {$group: {\n    _id: null,\n    totalWorkouts: {$sum: 1},\n    totalDuration: {$sum: "$duration"},\n    totalCalories: {$sum: "$caloriesBurned"}\n  }}\n])
+activate DB
+
+DB --> LogModel: Aggregated stats
+deactivate DB
+
+LogModel --> Controller: {\n  totalWorkouts: 15,\n  totalDuration: 450,\n  totalCalories: 3750,\n  avgDuration: 30\n}
+deactivate LogModel
+
+Controller --> API: Stats including\nnew workout
+deactivate Controller
+
+API --> Browser: Updated statistics
+deactivate API
+
+Browser --> User: Dashboard shows:\n15 workouts (30 days)\n3,750 calories burned
+deactivate Browser
+
+note over User, DB
+  The logged workout is now included in
+  user's statistics and history
+end note
+
+@enduml

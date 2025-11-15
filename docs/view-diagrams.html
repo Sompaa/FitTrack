@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack UML Diagrams</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .diagram-container.active {
+            display: block;
+        }
+
+        .diagram-info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .diagram-info h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .diagram-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .diagram-viewer {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diagram-viewer img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .instructions a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .instructions a:hover {
+            text-decoration: underline;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .feature-item p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ FitTrack UML Diagrams</h1>
+        <p class="subtitle">Comprehensive System Architecture & Design Documentation</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showDiagram('usecase')">📊 Use Case Diagram</button>
+            <button class="tab" onclick="showDiagram('class')">🏗️ Class Diagram</button>
+            <button class="tab" onclick="showDiagram('sequence')">🔄 Sequence Diagram</button>
+        </div>
+
+        <!-- Use Case Diagram -->
+        <div class="diagram-container active" id="usecase">
+            <div class="diagram-info">
+                <h2>📊 Use Case Diagram</h2>
+                <p>Shows all the use cases and actors in the FitTrack system. This diagram illustrates what users can do in the application and how external systems interact with it.</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h4>4 Actors</h4>
+                        <p>Guest User, Authenticated User, OpenWeather API, Google Maps API</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>29 Use Cases</h4>
+                        <p>Across 8 functional packages including authentication, workouts, recipes, and more</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>8 Packages</h4>
+                        <p>Authentication, Weight Management, Dashboard, Workouts, Recipes, Locations, Weather, Profile</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>External Integration</h4>
+                        <p>OpenWeather API for weather data, Google Maps API for location services</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-viewer">
+                <p style="color: #999;">To view this diagram, use one of the methods below ⬇️</p>
+            </div>
+        </div>
+
+        <!-- Class Diagram -->
+        <div class="diagram-container" id="class">
+            <div class="diagram-info">
+                <h2>🏗️ Class Diagram</h2>
+                <p>Comprehensive class diagram showing the system's structure, including models, controllers, middleware, and external services with their relationships and methods.</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h4>9 Model Classes</h4>
+                        <p>User, WeightLog, WorkoutLog, Workout, Recipe, Exercise, Nutrition, DietaryInfo, Ingredient</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>7 Controllers</h4>
+                        <p>Auth, User, Weight, Workout, Recipe, Weather, Location controllers</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Middleware & Services</h4>
+                        <p>Authentication, Validation middleware + External API integrations</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Full Relationships</h4>
+                        <p>Associations, compositions, dependencies clearly mapped</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-viewer">
+                <p style="color: #999;">To view this diagram, use one of the methods below ⬇️</p>
+            </div>
+        </div>
+
+        <!-- Sequence Diagram -->
+        <div class="diagram-container" id="sequence">
+            <div class="diagram-info">
+                <h2>🔄 Sequence Diagram - Log Workout</h2>
+                <p>Detailed sequence diagram showing the complete flow when a user logs a completed workout, including authentication, validation, database operations, and response handling.</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h4>10 Participants</h4>
+                        <p>From User to Database, including Browser, Router, API, Middleware, Controllers, Models</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>~40 Interactions</h4>
+                        <p>Complete request-response cycle with authentication and validation</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Error Handling</h4>
+                        <p>Shows alternative flows for authentication failure and invalid data</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Database Operations</h4>
+                        <p>MongoDB queries for validation, insertion, and aggregation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-viewer">
+                <p style="color: #999;">To view this diagram, use one of the methods below ⬇️</p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📖 How to View the Diagrams</h3>
+
+            <h4 style="margin-top: 20px;">Option 1: Online PlantUML Viewer (Easiest ⭐)</h4>
+            <ol>
+                <li>Go to <a href="http://www.plantuml.com/plantuml/uml/" target="_blank">PlantUML Web Server</a></li>
+                <li>Open the corresponding <code>.puml</code> file from the <code>docs/</code> folder</li>
+                <li>Copy all the content and paste it into the web editor</li>
+                <li>Click "Submit" to view the rendered diagram</li>
+            </ol>
+
+            <h4 style="margin-top: 20px;">Option 2: VS Code Extension (Recommended for Developers 💻)</h4>
+            <ol>
+                <li>Install the <strong>"PlantUML"</strong> extension in VS Code</li>
+                <li>Open any <code>.puml</code> file in VS Code</li>
+                <li>Press <code>Alt + D</code> (or right-click → "Preview Current Diagram")</li>
+                <li>The diagram will render in a preview pane</li>
+            </ol>
+
+            <h4 style="margin-top: 20px;">Option 3: Generate PNG Images 🖼️</h4>
+            <div class="code-block">
+# Install PlantUML (requires Java)
+# Download plantuml.jar from https://plantuml.com/download
+
+# Generate all diagrams as PNG
+java -jar plantuml.jar docs/*.puml
+            </div>
+
+            <h4 style="margin-top: 20px;">Quick Links 🔗</h4>
+            <ul>
+                <li><a href="https://www.planttext.com/" target="_blank">PlantText Editor</a> - Another online viewer</li>
+                <li><a href="https://plantuml.com/" target="_blank">PlantUML Official Documentation</a></li>
+                <li><a href="https://github.com/qjebbs/vscode-plantuml" target="_blank">VS Code PlantUML Extension</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showDiagram(type) {
+            // Hide all diagrams
+            document.querySelectorAll('.diagram-container').forEach(container => {
+                container.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected diagram
+            document.getElementById(type).classList.add('active');
+
+            // Activate clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

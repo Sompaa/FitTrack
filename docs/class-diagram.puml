@@ -1,0 +1,283 @@
+@startuml FitTrack Class Diagram
+
+!define PRIMARY_COLOR #2196F3
+!define SECONDARY_COLOR #4CAF50
+!define MODEL_COLOR #FFF3E0
+!define CONTROLLER_COLOR #E3F2FD
+!define SERVICE_COLOR #F3E5F5
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+
+' ============ MODELS ============
+
+package "Models" <<Rectangle>> {
+
+  class User {
+    - _id: ObjectId
+    - email: String {unique}
+    - password: String {hashed}
+    - name: String
+    - height: Number
+    - currentWeight: Number
+    - goalWeight: Number
+    - dateOfBirth: Date
+    - gender: String
+    - fitnessLevel: String
+    - preferences: Object
+    - createdAt: Date
+    --
+    + comparePassword(password: String): Boolean
+    + calculateBMI(): Number
+    + getBMICategory(): String
+    + generateAuthToken(): String
+  }
+
+  class WeightLog {
+    - _id: ObjectId
+    - userId: ObjectId
+    - weight: Number
+    - date: Date
+    - notes: String
+    - bmi: Number
+    - createdAt: Date
+    --
+    {static} + getHistory(userId: ObjectId, days: Number): WeightLog[]
+    {static} + getLatest(userId: ObjectId): WeightLog
+    {static} + getChartData(userId: ObjectId, days: Number): Object
+    - calculateBMI(): Number
+  }
+
+  class Workout {
+    - _id: ObjectId
+    - name: String
+    - description: String
+    - difficulty: String
+    - duration: Number
+    - type: String
+    - equipment: String[]
+    - exercises: Exercise[]
+    - suitableFor: Object
+    - indoorOutdoor: String
+    - caloriesBurned: Number
+    - imageUrl: String
+    - createdAt: Date
+    --
+    {static} + findSuitable(filters: Object): Workout[]
+  }
+
+  class Exercise {
+    - name: String
+    - sets: Number
+    - reps: Number
+    - duration: Number
+    - description: String
+  }
+
+  class WorkoutLog {
+    - _id: ObjectId
+    - userId: ObjectId
+    - workoutId: ObjectId
+    - date: Date
+    - duration: Number
+    - caloriesBurned: Number
+    - difficulty: Number
+    - notes: String
+    - completed: Boolean
+    - createdAt: Date
+    --
+    {static} + getHistory(userId: ObjectId, days: Number): WorkoutLog[]
+    {static} + getStats(userId: ObjectId, days: Number): Object
+  }
+
+  class Recipe {
+    - _id: ObjectId
+    - name: String
+    - description: String
+    - imageUrl: String
+    - prepTime: Number
+    - cookTime: Number
+    - servings: Number
+    - difficulty: String
+    - nutrition: Nutrition
+    - dietaryInfo: DietaryInfo
+    - allergens: String[]
+    - ingredients: Ingredient[]
+    - instructions: String[]
+    - tags: String[]
+    - createdAt: Date
+    --
+    {static} + searchRecipes(filters: Object): Recipe[]
+  }
+
+  class Nutrition {
+    - calories: Number
+    - protein: Number
+    - carbs: Number
+    - fat: Number
+    - fiber: Number
+  }
+
+  class DietaryInfo {
+    - vegan: Boolean
+    - vegetarian: Boolean
+    - keto: Boolean
+    - paleo: Boolean
+    - glutenFree: Boolean
+    - dairyFree: Boolean
+  }
+
+  class Ingredient {
+    - name: String
+    - amount: Number
+    - unit: String
+  }
+}
+
+' ============ CONTROLLERS ============
+
+package "Controllers" <<Rectangle>> {
+
+  class AuthController {
+    + register(req, res): Promise<void>
+    + login(req, res): Promise<void>
+    + getMe(req, res): Promise<void>
+  }
+
+  class UserController {
+    + updateProfile(req, res): Promise<void>
+    + getStats(req, res): Promise<void>
+    + deleteAccount(req, res): Promise<void>
+  }
+
+  class WeightController {
+    + logWeight(req, res): Promise<void>
+    + getWeightLogs(req, res): Promise<void>
+    + getChartData(req, res): Promise<void>
+    + calculateBMI(req, res): Promise<void>
+  }
+
+  class WorkoutController {
+    + getWorkouts(req, res): Promise<void>
+    + getWorkout(req, res): Promise<void>
+    + getRecommendations(req, res): Promise<void>
+    + logWorkout(req, res): Promise<void>
+    + getMyLogs(req, res): Promise<void>
+  }
+
+  class RecipeController {
+    + getRecipes(req, res): Promise<void>
+    + getRecipe(req, res): Promise<void>
+  }
+
+  class WeatherController {
+    + getCurrentWeather(req, res): Promise<void>
+    + getForecast(req, res): Promise<void>
+    + getWeatherRecommendation(req, res): Promise<void>
+  }
+
+  class LocationController {
+    + getNearbyLocations(req, res): Promise<void>
+    + getLocationDetails(req, res): Promise<void>
+  }
+}
+
+' ============ MIDDLEWARE ============
+
+package "Middleware" <<Rectangle>> {
+
+  class AuthMiddleware {
+    + protect(req, res, next): Promise<void>
+    + verifyToken(token: String): Object
+  }
+
+  class ValidationMiddleware {
+    + validateRegister(): ValidationChain[]
+    + validateLogin(): ValidationChain[]
+    + validateWeightLog(): ValidationChain[]
+  }
+}
+
+' ============ EXTERNAL SERVICES ============
+
+package "External Services" <<Rectangle>> {
+
+  class OpenWeatherAPI {
+    - apiKey: String
+    + getCurrentWeather(lat: Number, lng: Number): Promise<Object>
+    + getForecast(lat: Number, lng: Number): Promise<Object>
+  }
+
+  class GoogleMapsAPI {
+    - apiKey: String
+    + searchNearby(lat: Number, lng: Number, type: String): Promise<Object>
+    + getPlaceDetails(placeId: String): Promise<Object>
+  }
+}
+
+' ============ RELATIONSHIPS ============
+
+' Model relationships
+User "1" -- "0..*" WeightLog : logs >
+User "1" -- "0..*" WorkoutLog : completes >
+WorkoutLog "0..*" -- "1" Workout : references >
+Workout "1" *-- "1..*" Exercise : contains >
+Recipe "1" *-- "1" Nutrition : has >
+Recipe "1" *-- "1" DietaryInfo : has >
+Recipe "1" *-- "1..*" Ingredient : contains >
+
+' Controller to Model relationships
+AuthController ..> User : <<uses>>
+UserController ..> User : <<uses>>
+UserController ..> WeightLog : <<uses>>
+UserController ..> WorkoutLog : <<uses>>
+WeightController ..> WeightLog : <<uses>>
+WeightController ..> User : <<uses>>
+WorkoutController ..> Workout : <<uses>>
+WorkoutController ..> WorkoutLog : <<uses>>
+WorkoutController ..> User : <<uses>>
+RecipeController ..> Recipe : <<uses>>
+WeatherController ..> Workout : <<uses>>
+
+' Controller to External Services
+WeatherController ..> OpenWeatherAPI : <<uses>>
+LocationController ..> GoogleMapsAPI : <<uses>>
+
+' Middleware relationships
+AuthController ..> AuthMiddleware : <<uses>>
+AuthController ..> ValidationMiddleware : <<uses>>
+UserController ..> AuthMiddleware : <<uses>>
+WeightController ..> AuthMiddleware : <<uses>>
+WorkoutController ..> AuthMiddleware : <<uses>>
+
+note top of User
+  Main user model with authentication
+  and BMI calculation methods
+end note
+
+note top of WeightLog
+  Tracks user's weight history
+  with automatic BMI calculation
+end note
+
+note top of Workout
+  Pre-defined workout templates
+  with suitability filters
+end note
+
+note top of Recipe
+  Nutrition recipes with
+  dietary information
+end note
+
+note bottom of OpenWeatherAPI
+  External API for weather data
+  requires API key
+end note
+
+note bottom of GoogleMapsAPI
+  External API for location services
+  requires API key
+end note
+
+@enduml
