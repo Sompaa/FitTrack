@@ -1,0 +1,145 @@
+@startuml FitTrack Use Case Diagram
+
+!define RECTANGLE_COLOR #E1F5FE
+!define ACTOR_COLOR #B3E5FC
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+left to right direction
+
+actor "Guest User" as Guest
+actor "Authenticated User" as User
+actor "OpenWeather API" as Weather
+actor "Google Maps API" as Maps
+
+rectangle "FitTrack System" {
+
+  ' Authentication Use Cases
+  package "Authentication" {
+    usecase "Register Account" as UC1
+    usecase "Login" as UC2
+    usecase "Logout" as UC3
+  }
+
+  ' BMI & Weight Management
+  package "Weight Management" {
+    usecase "Calculate BMI" as UC4
+    usecase "Log Weight" as UC5
+    usecase "View Weight History" as UC6
+    usecase "View Weight Charts" as UC7
+  }
+
+  ' Dashboard & Statistics
+  package "Dashboard" {
+    usecase "View Dashboard" as UC8
+    usecase "View Statistics" as UC9
+    usecase "View Progress Charts" as UC10
+  }
+
+  ' Workout Management
+  package "Workout Management" {
+    usecase "Browse Workouts" as UC11
+    usecase "Filter Workouts" as UC12
+    usecase "View Workout Details" as UC13
+    usecase "Log Completed Workout" as UC14
+    usecase "View Workout History" as UC15
+    usecase "Get Personalized Recommendations" as UC16
+  }
+
+  ' Recipe Management
+  package "Recipe Management" {
+    usecase "Browse Recipes" as UC17
+    usecase "Filter Recipes by Diet" as UC18
+    usecase "Search Recipes" as UC19
+    usecase "View Recipe Details" as UC20
+  }
+
+  ' Location Services
+  package "Location Services" {
+    usecase "Search Fitness Locations" as UC21
+    usecase "View Locations on Map" as UC22
+    usecase "Get Location Details" as UC23
+  }
+
+  ' Weather Services
+  package "Weather Services" {
+    usecase "View Current Weather" as UC24
+    usecase "View Weather Forecast" as UC25
+    usecase "Get Weather-based Workout Recommendations" as UC26
+  }
+
+  ' Profile Management
+  package "Profile Management" {
+    usecase "View Profile" as UC27
+    usecase "Update Profile" as UC28
+    usecase "Update Fitness Level" as UC29
+  }
+}
+
+' Guest User relationships
+Guest --> UC1
+Guest --> UC2
+Guest --> UC4
+Guest --> UC11
+Guest --> UC17
+
+' Authenticated User relationships (inherits from Guest)
+User --|> Guest
+User --> UC3
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC14
+User --> UC15
+User --> UC16
+User --> UC27
+User --> UC28
+User --> UC29
+
+' Both can access these
+Guest --> UC12
+Guest --> UC13
+Guest --> UC18
+Guest --> UC19
+Guest --> UC20
+Guest --> UC21
+Guest --> UC22
+Guest --> UC23
+Guest --> UC24
+Guest --> UC25
+
+' Authenticated user exclusive for personalized recommendations
+User --> UC26
+
+' External API relationships
+UC24 ..> Weather : <<uses>>
+UC25 ..> Weather : <<uses>>
+UC26 ..> Weather : <<uses>>
+UC21 ..> Maps : <<uses>>
+UC22 ..> Maps : <<uses>>
+UC23 ..> Maps : <<uses>>
+
+' Include relationships
+UC8 ..> UC9 : <<include>>
+UC8 ..> UC10 : <<include>>
+UC12 ..> UC11 : <<extends>>
+UC18 ..> UC17 : <<extends>>
+UC19 ..> UC17 : <<extends>>
+UC16 ..> UC11 : <<extends>>
+UC26 ..> UC24 : <<include>>
+
+note right of Weather
+  External API providing
+  weather data and forecasts
+end note
+
+note right of Maps
+  External API providing
+  maps and location services
+end note
+
+@enduml
