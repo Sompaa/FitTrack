@@ -837,7 +837,7 @@ window.initializeMap = () => {
     // Load Google Maps script if not already loaded
     if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
