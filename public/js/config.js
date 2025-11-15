@@ -1,7 +1,7 @@
 // Configuration
 const CONFIG = {
   API_BASE_URL: window.location.origin + '/api',
-  GOOGLE_MAPS_API_KEY: 'YOUR_GOOGLE_MAPS_API_KEY', // Replace with actual key
+  GOOGLE_MAPS_API_KEY: 'AIzaSyDX-UpzDMmRfV-_1QO8ebqAtz1crtn8iPo',
   DEFAULT_MAP_CENTER: { lat: 47.5316, lng: 21.6273 }, // Debrecen, Hungary (default)
   DEFAULT_MAP_ZOOM: 13,
   STORAGE_KEY: 'fittrack_token',
