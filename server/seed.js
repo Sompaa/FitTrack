@@ -568,7 +568,7 @@ const sampleRecipes = [
       "Top with granola, berries, and chia seeds",
       "Enjoy with spoon"
     ],
-    tags: ["breakfast", "vegan", "high-protein"]
+    tags: ["breakfast", "high-protein"]
   },
 
   // LUNCH
@@ -629,7 +629,7 @@ const sampleRecipes = [
       "Make dressing with tahini and lemon",
       "Drizzle and serve"
     ],
-    tags: ["lunch", "vegan", "high-protein"]
+    tags: ["lunch", "high-protein"]
   },
   {
     name: "Turkey Wrap with Hummus",
@@ -685,7 +685,7 @@ const sampleRecipes = [
       "Add soy sauce and tofu back in",
       "Serve over brown rice"
     ],
-    tags: ["lunch", "dinner", "vegan"]
+    tags: ["lunch", "dinner"]
   },
   {
     name: "Mediterranean Chickpea Salad",
@@ -715,7 +715,7 @@ const sampleRecipes = [
       "Mix olive oil and lemon juice",
       "Toss and serve"
     ],
-    tags: ["lunch", "vegan"]
+    tags: ["lunch"]
   },
 
   // DINNER
@@ -835,7 +835,7 @@ const sampleRecipes = [
       "Stir in spinach until wilted",
       "Serve with rice or naan"
     ],
-    tags: ["dinner", "vegan"]
+    tags: ["dinner"]
   },
   {
     name: "Beef Stir-Fry with Broccoli",
@@ -957,7 +957,7 @@ const sampleRecipes = [
       "Pan-fry or grill for 5 minutes per side",
       "Assemble burgers with buns and toppings"
     ],
-    tags: ["dinner", "vegan"]
+    tags: ["dinner"]
   },
   {
     name: "Shrimp and Avocado Salad",
@@ -1042,7 +1042,7 @@ const sampleRecipes = [
       "Fill tortillas with sweet potato and beans",
       "Top with avocado, lime, and cilantro"
     ],
-    tags: ["dinner", "vegan"]
+    tags: ["dinner"]
   }
 ];
 
