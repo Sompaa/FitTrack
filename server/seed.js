@@ -4,10 +4,7 @@ const Recipe = require('./src/models/Recipe');
 require('dotenv').config();
 
 // Connect to database
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/fittrack', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/fittrack')
 .then(() => console.log('MongoDB connected for seeding'))
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -31,7 +28,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 100, jointFriendly: true },
     indoorOutdoor: "indoor",
     caloriesBurned: 150,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=400&fit=crop"
   },
   {
     name: "Morning Gentle Yoga",
@@ -49,7 +46,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 100, jointFriendly: true },
     indoorOutdoor: "both",
     caloriesBurned: 100,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop"
   },
   {
     name: "Walking for Beginners",
@@ -66,7 +63,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 100, jointFriendly: true },
     indoorOutdoor: "outdoor",
     caloriesBurned: 180,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&h=400&fit=crop"
   },
   {
     name: "Chair Exercises for Seniors",
@@ -84,7 +81,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 100, jointFriendly: true },
     indoorOutdoor: "indoor",
     caloriesBurned: 90,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop"
   },
   {
     name: "Swimming for Fitness",
@@ -101,7 +98,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 100, jointFriendly: true },
     indoorOutdoor: "indoor",
     caloriesBurned: 250,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=600&h=400&fit=crop"
   },
 
   // INTERMEDIATE WORKOUTS
@@ -121,7 +118,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 29.9, jointFriendly: false },
     indoorOutdoor: "outdoor",
     caloriesBurned: 350,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop"
   },
   {
     name: "Strength Training with Dumbbells",
@@ -140,7 +137,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 35, jointFriendly: false },
     indoorOutdoor: "indoor",
     caloriesBurned: 280,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=400&fit=crop"
   },
   {
     name: "Cycling Workout",
@@ -158,7 +155,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 35, jointFriendly: true },
     indoorOutdoor: "outdoor",
     caloriesBurned: 450,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop"
   },
   {
     name: "Bodyweight Circuit Training",
@@ -177,7 +174,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 30, jointFriendly: false },
     indoorOutdoor: "both",
     caloriesBurned: 320,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&h=400&fit=crop"
   },
   {
     name: "Pilates Core Workout",
@@ -196,7 +193,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 35, jointFriendly: true },
     indoorOutdoor: "indoor",
     caloriesBurned: 200,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop"
   },
   {
     name: "Vinyasa Flow Yoga",
@@ -215,7 +212,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 35, jointFriendly: true },
     indoorOutdoor: "both",
     caloriesBurned: 240,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=600&h=400&fit=crop"
   },
   {
     name: "Resistance Band Full Body",
@@ -234,7 +231,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 35, jointFriendly: true },
     indoorOutdoor: "both",
     caloriesBurned: 250,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop"
   },
   {
     name: "Kickboxing Cardio",
@@ -253,7 +250,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 30, jointFriendly: false },
     indoorOutdoor: "indoor",
     caloriesBurned: 380,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop"
   },
   {
     name: "Step Aerobics",
@@ -272,7 +269,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 32, jointFriendly: false },
     indoorOutdoor: "indoor",
     caloriesBurned: 340,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"
   },
   {
     name: "TRX Suspension Training",
@@ -291,7 +288,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 30, jointFriendly: false },
     indoorOutdoor: "both",
     caloriesBurned: 300,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=600&h=400&fit=crop"
   },
 
   // ADVANCED WORKOUTS
@@ -312,7 +309,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 25, jointFriendly: false },
     indoorOutdoor: "both",
     caloriesBurned: 450,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop"
   },
   {
     name: "CrossFit WOD",
@@ -331,7 +328,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 27, jointFriendly: false },
     indoorOutdoor: "indoor",
     caloriesBurned: 500,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=400&fit=crop"
   },
   {
     name: "Marathon Training Long Run",
@@ -349,7 +346,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 25, jointFriendly: false },
     indoorOutdoor: "outdoor",
     caloriesBurned: 900,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&h=400&fit=crop"
   },
   {
     name: "Olympic Lifting Session",
@@ -368,7 +365,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 27, jointFriendly: false },
     indoorOutdoor: "indoor",
     caloriesBurned: 400,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600&h=400&fit=crop"
   },
   {
     name: "Plyometric Power Training",
@@ -387,7 +384,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 25, jointFriendly: false },
     indoorOutdoor: "both",
     caloriesBurned: 420,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop"
   },
   {
     name: "Ashtanga Yoga Primary Series",
@@ -406,7 +403,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 28, jointFriendly: true },
     indoorOutdoor: "both",
     caloriesBurned: 350,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop"
   },
   {
     name: "Triathlon Brick Workout",
@@ -424,7 +421,7 @@ const sampleWorkouts = [
     suitableFor: { minBMI: 0, maxBMI: 25, jointFriendly: false },
     indoorOutdoor: "outdoor",
     caloriesBurned: 850,
-    imageUrl: "/images/default-workout.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=600&h=400&fit=crop"
   }
 ];
 
@@ -434,7 +431,7 @@ const sampleRecipes = [
   {
     name: "Protein Power Smoothie",
     description: "Quick and easy high-protein breakfast smoothie to fuel your day",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1526424382096-74a93e105682?w=600&h=400&fit=crop",
     prepTime: 5,
     cookTime: 0,
     servings: 1,
@@ -461,7 +458,7 @@ const sampleRecipes = [
   {
     name: "Overnight Oats",
     description: "Prepare the night before for a quick, healthy breakfast",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop",
     prepTime: 5,
     cookTime: 0,
     servings: 1,
@@ -490,7 +487,7 @@ const sampleRecipes = [
   {
     name: "Avocado Toast with Eggs",
     description: "Classic healthy breakfast with protein and healthy fats",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=600&h=400&fit=crop",
     prepTime: 5,
     cookTime: 5,
     servings: 1,
@@ -518,7 +515,7 @@ const sampleRecipes = [
   {
     name: "Banana Protein Pancakes",
     description: "Fluffy high-protein pancakes made with bananas",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 15,
     servings: 2,
@@ -548,7 +545,7 @@ const sampleRecipes = [
   {
     name: "Green Breakfast Smoothie Bowl",
     description: "Nutrient-packed smoothie bowl with superfoods",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1590137876181-4d3df9430489?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 0,
     servings: 1,
@@ -578,7 +575,7 @@ const sampleRecipes = [
   {
     name: "Grilled Chicken Salad",
     description: "Healthy, protein-packed salad perfect for lunch or dinner",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 15,
     servings: 2,
@@ -608,7 +605,7 @@ const sampleRecipes = [
   {
     name: "Quinoa Power Bowl",
     description: "Complete protein bowl with quinoa and vegetables",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 25,
     servings: 2,
@@ -637,7 +634,7 @@ const sampleRecipes = [
   {
     name: "Turkey Wrap with Hummus",
     description: "Quick and easy protein-packed wrap",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1623428187425-5add2e4c9a1d?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 0,
     servings: 1,
@@ -664,7 +661,7 @@ const sampleRecipes = [
   {
     name: "Asian Tofu Stir-Fry",
     description: "Colorful vegetable stir-fry with crispy tofu",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 15,
     servings: 2,
@@ -693,7 +690,7 @@ const sampleRecipes = [
   {
     name: "Mediterranean Chickpea Salad",
     description: "Fresh and filling salad with Mediterranean flavors",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 0,
     servings: 2,
@@ -725,7 +722,7 @@ const sampleRecipes = [
   {
     name: "Vegan Buddha Bowl",
     description: "Nutritious and colorful plant-based meal packed with vitamins",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=600&h=400&fit=crop",
     prepTime: 20,
     cookTime: 25,
     servings: 2,
@@ -755,7 +752,7 @@ const sampleRecipes = [
   {
     name: "Baked Salmon with Asparagus",
     description: "Omega-3 rich dinner with roasted vegetables",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 20,
     servings: 2,
@@ -783,7 +780,7 @@ const sampleRecipes = [
   {
     name: "Chicken Fajita Bowl",
     description: "Mexican-inspired bowl with grilled chicken and peppers",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 20,
     servings: 2,
@@ -814,7 +811,7 @@ const sampleRecipes = [
   {
     name: "Lentil Curry",
     description: "Hearty plant-based curry with aromatic spices",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1598866594230-a7c12756260f?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 30,
     servings: 4,
@@ -843,7 +840,7 @@ const sampleRecipes = [
   {
     name: "Beef Stir-Fry with Broccoli",
     description: "Quick and easy high-protein dinner",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 15,
     servings: 2,
@@ -875,7 +872,7 @@ const sampleRecipes = [
   {
     name: "Keto Cauliflower Pizza",
     description: "Low-carb pizza alternative with cauliflower crust",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=400&fit=crop",
     prepTime: 20,
     cookTime: 30,
     servings: 4,
@@ -906,7 +903,7 @@ const sampleRecipes = [
   {
     name: "Paleo Meatballs with Zucchini Noodles",
     description: "Grain-free meatballs with vegetable noodles",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 25,
     servings: 3,
@@ -936,7 +933,7 @@ const sampleRecipes = [
   {
     name: "Vegan Protein Burger",
     description: "Plant-based burger packed with protein",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 15,
     servings: 4,
@@ -965,7 +962,7 @@ const sampleRecipes = [
   {
     name: "Shrimp and Avocado Salad",
     description: "Light and refreshing high-protein salad",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 5,
     servings: 2,
@@ -994,7 +991,7 @@ const sampleRecipes = [
   {
     name: "Egg White Veggie Omelette",
     description: "Low-fat, high-protein breakfast option",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600&h=400&fit=crop",
     prepTime: 10,
     cookTime: 10,
     servings: 1,
@@ -1022,7 +1019,7 @@ const sampleRecipes = [
   {
     name: "Sweet Potato and Black Bean Tacos",
     description: "Vegetarian tacos with fiber and nutrients",
-    imageUrl: "/images/default-recipe.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=600&h=400&fit=crop",
     prepTime: 15,
     cookTime: 25,
     servings: 3,
