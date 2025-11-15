@@ -837,12 +837,9 @@ window.initializeMap = () => {
     // Load Google Maps script if not already loaded
     if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&callback=initializeMap`;
       script.async = true;
       script.defer = true;
-      script.onload = () => {
-        setTimeout(initializeMap, 500);
-      };
       document.head.appendChild(script);
     } else {
       setTimeout(initializeMap, 1000);
@@ -854,6 +851,7 @@ window.initializeMap = () => {
   map = new google.maps.Map(mapElement, {
     center: CONFIG.DEFAULT_MAP_CENTER,
     zoom: CONFIG.DEFAULT_MAP_ZOOM,
+    mapId: 'FITTRACK_MAP', // Required for advanced markers
     styles: [
       {
         featureType: 'poi',

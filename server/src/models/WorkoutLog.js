@@ -63,10 +63,15 @@ workoutLogSchema.statics.getStats = async function(userId, days = 30) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
+  // Convert userId to ObjectId if it's a string, otherwise use as-is
+  const userObjectId = typeof userId === 'string'
+    ? mongoose.Types.ObjectId.createFromHexString(userId)
+    : userId;
+
   const stats = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId.createFromHexString(userId),
+        userId: userObjectId,
         date: { $gte: startDate }
       }
     },
