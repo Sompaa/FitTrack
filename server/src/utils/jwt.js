@@ -1,0 +1,26 @@
+const jwt = require('jsonwebtoken');
+
+// Generate JWT token
+const generateToken = (userId) => {
+  return jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET || 'default-secret-change-in-production',
+    {
+      expiresIn: process.env.JWT_EXPIRE || '24h'
+    }
+  );
+};
+
+// Verify JWT token
+const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET || 'default-secret-change-in-production');
+  } catch (error) {
+    return null;
+  }
+};
+
+module.exports = {
+  generateToken,
+  verifyToken
+};

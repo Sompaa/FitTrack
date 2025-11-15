@@ -1,0 +1,54 @@
+# Netlify Configuration for FitTrack
+
+[build]
+  # Build command
+  command = "npm install"
+
+  # Directory to publish (frontend)
+  publish = "public"
+
+  # Functions directory (for serverless backend)
+  functions = "netlify/functions"
+
+# Redirect API calls to serverless functions (if using Netlify Functions)
+# Uncomment if deploying backend as Netlify Functions
+# [[redirects]]
+#   from = "/api/*"
+#   to = "/.netlify/functions/api/:splat"
+#   status = 200
+
+# SPA redirect - serve index.html for all routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (set these in Netlify dashboard)
+# Don't put actual values here - use Netlify UI
+[build.environment]
+  NODE_VERSION = "18"
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+
+# Cache static assets
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
