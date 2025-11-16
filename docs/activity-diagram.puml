@@ -1,0 +1,79 @@
+@startuml FitTrack - Activity Diagram: Track Fitness Journey
+
+skinparam activity {
+    BackgroundColor LightBlue
+    BorderColor Black
+    ArrowColor Black
+    StartColor Green
+    EndColor Red
+}
+
+title User's Fitness Tracking Journey
+
+start
+
+:User visits FitTrack app;
+
+if (User logged in?) then (no)
+  :Show login/register page;
+  :User registers account;
+  :Set initial weight & height;
+else (yes)
+endif
+
+:Navigate to Dashboard;
+
+:View current stats:
+- Weight
+- BMI
+- Workout count
+- Calories burned;
+
+partition "Daily Activities" {
+
+  fork
+    :Check Weather;
+    :Get workout recommendations;
+    :Select suitable workout;
+  fork again
+    :Browse Recipes;
+    :Filter by diet preferences;
+    :View recipe details;
+  fork again
+    :Find Fitness Locations;
+    :Search nearby gyms;
+    :View on map;
+  end fork
+
+}
+
+:Complete Workout;
+
+:Log workout details:
+- Duration
+- Calories
+- Difficulty
+- Notes;
+
+:Update Weight (if needed);
+
+:View Updated Dashboard;
+
+if (Goal achieved?) then (yes)
+  :Celebrate! 🎉;
+  :Set new goal;
+else (no)
+  :Continue tracking;
+endif
+
+:View Progress Charts;
+
+stop
+
+note right
+  Complete fitness tracking
+  with workouts, nutrition,
+  and location services
+end note
+
+@enduml

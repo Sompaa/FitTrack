@@ -1,0 +1,133 @@
+@startuml FitTrack - Simple Class Diagram
+
+skinparam class {
+    BackgroundColor LightYellow
+    BorderColor Black
+    ArrowColor Black
+}
+
+' ============ MAIN MODELS ============
+
+class User {
+    - email: String
+    - password: String
+    - name: String
+    - height: Number
+    - currentWeight: Number
+    - goalWeight: Number
+    - fitnessLevel: String
+    --
+    + calculateBMI(): Number
+    + comparePassword(): Boolean
+}
+
+class WeightLog {
+    - userId: ObjectId
+    - weight: Number
+    - date: Date
+    - bmi: Number
+    --
+    + getHistory(): WeightLog[]
+    + getChartData(): Object
+}
+
+class Workout {
+    - name: String
+    - description: String
+    - difficulty: String
+    - duration: Number
+    - type: String
+    - caloriesBurned: Number
+    - imageUrl: String
+    --
+    + findSuitable(): Workout[]
+}
+
+class WorkoutLog {
+    - userId: ObjectId
+    - workoutId: ObjectId
+    - date: Date
+    - duration: Number
+    - caloriesBurned: Number
+    - notes: String
+    --
+    + getStats(): Object
+    + getHistory(): WorkoutLog[]
+}
+
+class Recipe {
+    - name: String
+    - description: String
+    - prepTime: Number
+    - cookTime: Number
+    - calories: Number
+    - imageUrl: String
+    - dietaryInfo: Object
+    - ingredients: Array
+    --
+    + searchRecipes(): Recipe[]
+}
+
+' ============ RELATIONSHIPS ============
+
+User "1" --> "0..*" WeightLog : tracks weight
+User "1" --> "0..*" WorkoutLog : logs workouts
+WorkoutLog "*" --> "1" Workout : references
+
+' ============ CONTROLLERS ============
+
+class AuthController {
+    + register()
+    + login()
+    + getMe()
+}
+
+class WorkoutController {
+    + getWorkouts()
+    + logWorkout()
+    + getRecommendations()
+}
+
+class WeatherController {
+    + getCurrentWeather()
+    + getForecast()
+    + getRecommendations()
+}
+
+' Controller to Model relationships
+AuthController ..> User
+WorkoutController ..> Workout
+WorkoutController ..> WorkoutLog
+WeatherController ..> Workout
+
+' ============ EXTERNAL SERVICES ============
+
+class "OpenWeather API" as Weather {
+    + getCurrentWeather()
+    + getForecast()
+}
+
+class "Google Maps API" as Maps {
+    + searchNearby()
+    + getPlaceDetails()
+}
+
+WeatherController ..> Weather : <<uses>>
+Maps ..> WorkoutController : <<location data>>
+
+note top of User
+  Main user account with
+  authentication & BMI tracking
+end note
+
+note right of Workout
+  Pre-defined workout templates
+  with difficulty & calorie info
+end note
+
+note bottom of Weather
+  External API for
+  weather-based recommendations
+end note
+
+@enduml
