@@ -99,8 +99,8 @@ Router.addRoute('login', (container) => {
             <div class="card-body">
               <form id="login-form">
                 <div class="mb-3">
-                  <label for="email" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="email" required>
+                  <label for="identifier" class="form-label">Username or Email</label>
+                  <input type="text" class="form-control" id="identifier" placeholder="Enter your username or email" required>
                 </div>
                 <div class="mb-3">
                   <label for="password" class="form-label">Password</label>
@@ -122,11 +122,16 @@ Router.addRoute('login', (container) => {
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
+    const identifier = document.getElementById('identifier').value;
     const password = document.getElementById('password').value;
 
     try {
-      const response = await API.login({ email, password });
+      // Send as either email or username depending on format
+      const loginData = identifier.includes('@')
+        ? { email: identifier, password }
+        : { username: identifier, password };
+
+      const response = await API.login(loginData);
       Auth.setToken(response.token);
       Auth.setUser(response.user);
       Auth.updateUI();
@@ -161,15 +166,20 @@ Router.addRoute('register', (container) => {
                     <input type="text" class="form-control" id="name" required>
                   </div>
                   <div class="col-md-6 mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" required>
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required minlength="3" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers, and underscores allowed">
+                    <small class="text-muted">Min 3 characters, letters, numbers, and underscores only</small>
                   </div>
                 </div>
                 <div class="row">
                   <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control" id="password" required minlength="8">
-                    <small class="text-muted">Min 8 characters, 1 uppercase, 1 number</small>
+                    <small class="text-muted">Min 8 characters</small>
                   </div>
                   <div class="col-md-6 mb-3">
                     <label for="height" class="form-label">Height (cm)</label>
@@ -210,6 +220,7 @@ Router.addRoute('register', (container) => {
 
     const userData = {
       name: document.getElementById('name').value,
+      username: document.getElementById('username').value,
       email: document.getElementById('email').value,
       password: document.getElementById('password').value,
       height: parseFloat(document.getElementById('height').value) || undefined,

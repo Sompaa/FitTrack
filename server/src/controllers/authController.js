@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const WeightLog = require('../models/WeightLog');
 const { generateToken } = require('../utils/jwt');
 const { validationResult } = require('express-validator');
 
@@ -16,20 +17,25 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { name, email, password, height, currentWeight, dateOfBirth, gender } = req.body;
+    const { name, username, email, password, height, currentWeight, dateOfBirth, gender } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email'
+        message: existingUser.email === email
+          ? 'User already exists with this email'
+          : 'Username is already taken'
       });
     }
 
     // Create user
     const user = await User.create({
       name,
+      username,
       email,
       password,
       height,
@@ -37,6 +43,18 @@ exports.register = async (req, res) => {
       dateOfBirth,
       gender
     });
+
+    // If height and weight are provided, create an initial weight log entry
+    if (height && currentWeight) {
+      const bmi = currentWeight / Math.pow(height / 100, 2);
+      await WeightLog.create({
+        userId: user._id,
+        weight: currentWeight,
+        bmi: Math.round(bmi * 10) / 10,
+        date: new Date(),
+        notes: 'Initial weight recorded during registration'
+      });
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -68,18 +86,25 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identifier = email || username;
 
     // Validation
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
+        message: 'Please provide username/email and password'
       });
     }
 
-    // Check for user (include password for comparison)
-    const user = await User.findOne({ email }).select('+password');
+    // Check for user by email or username (include password for comparison)
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { username: identifier.toLowerCase() }
+      ]
+    }).select('+password');
+
     if (!user) {
       return res.status(401).json({
         success: false,

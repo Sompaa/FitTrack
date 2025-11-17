@@ -1,0 +1,81 @@
+@startuml FitTrack - Simple Use Case Diagram
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor Black
+}
+
+left to right direction
+
+actor "User" as User #lightblue
+actor "Weather API" as Weather #lightgreen
+actor "Maps API" as Maps #lightgreen
+
+rectangle "FitTrack Fitness App" {
+
+  package "Core Features" #TECHNOLOGY {
+    (Register & Login) as UC1
+    (Track Weight & BMI) as UC2
+    (Browse Workouts) as UC3
+    (Log Workouts) as UC4
+    (Browse Recipes) as UC5
+    (View Dashboard) as UC6
+  }
+
+  package "Advanced Features" #MOTIVATION {
+    (Get Workout Recommendations) as UC7
+    (View Weather & Recommendations) as UC8
+    (Find Fitness Locations) as UC9
+    (Track Progress Charts) as UC10
+  }
+
+  package "Profile Management" #BUSINESS {
+    (Update Profile) as UC11
+    (View Statistics) as UC12
+  }
+}
+
+' User relationships
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+
+' API relationships
+UC8 ..> Weather : <<uses>>
+UC7 ..> Weather : <<uses>>
+UC9 ..> Maps : <<uses>>
+
+' Include relationships
+UC6 ..> UC12 : <<include>>
+UC6 ..> UC10 : <<include>>
+
+note right of Weather
+  Provides weather data
+  and forecasts
+end note
+
+note right of Maps
+  Provides gym and park
+  location services
+end note
+
+note bottom of UC6
+  Dashboard shows:
+  - Weight trends
+  - Workout stats
+  - BMI progress
+end note
+
+@enduml

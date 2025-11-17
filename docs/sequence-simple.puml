@@ -1,0 +1,71 @@
+@startuml FitTrack - User Registration Sequence
+
+skinparam sequence {
+    ArrowColor Black
+    ActorBorderColor Black
+    LifeLineBorderColor Black
+    ParticipantBorderColor Black
+    ParticipantBackgroundColor LightBlue
+    ActorBackgroundColor LightGreen
+}
+
+title User Registration Process
+
+actor User
+participant "Browser" as Browser
+participant "AuthController" as Auth
+participant "User Model" as UserModel
+database "MongoDB" as DB
+
+User -> Browser: Fill registration form\n(email, password, name, height, weight)
+activate Browser
+
+Browser -> Auth: POST /api/auth/register\n{email, password, name, ...}
+activate Auth
+
+Auth -> Auth: Validate input data
+note right: Check email format,\npassword strength,\nrequired fields
+
+Auth -> UserModel: Check if email exists
+activate UserModel
+
+UserModel -> DB: findOne({email})
+activate DB
+DB --> UserModel: null (email available)
+deactivate DB
+
+UserModel --> Auth: Email available ✓
+deactivate UserModel
+
+Auth -> Auth: Hash password\nusing bcrypt
+
+Auth -> UserModel: Create new user
+activate UserModel
+
+UserModel -> DB: insertOne({\n  email,\n  password (hashed),\n  name,\n  height,\n  currentWeight\n})
+activate DB
+
+DB --> UserModel: User created with _id
+deactivate DB
+
+UserModel --> Auth: New user object
+deactivate UserModel
+
+Auth -> Auth: Generate JWT token\nwith userId
+
+Auth --> Browser: 201 Created\n{success: true,\n token: "jwt...",\n user: {...}}
+deactivate Auth
+
+Browser -> Browser: Save token to localStorage
+
+Browser --> User: Show success message\n"Registration successful!"
+deactivate Browser
+
+User -> Browser: Redirected to Dashboard
+
+note over User, DB
+  User is now authenticated
+  and can access all features
+end note
+
+@enduml

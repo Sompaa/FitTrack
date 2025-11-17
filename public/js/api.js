@@ -23,6 +23,14 @@ const API = {
       const response = await fetch(url, config);
       const data = await response.json();
 
+      // Handle unauthorized (expired or invalid token)
+      if (response.status === 401) {
+        Auth.removeToken();
+        window.location.hash = '#login';
+        Auth.updateUI();
+        throw new Error('Session expired. Please login again.');
+      }
+
       if (!response.ok) {
         throw new Error(data.message || 'Request failed');
       }

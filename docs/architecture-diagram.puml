@@ -1,0 +1,108 @@
+@startuml FitTrack - System Architecture
+
+!define RECTANGLE_COLOR #E1F5FE
+!define COMPONENT_COLOR #BBDEFB
+
+skinparam component {
+    BackgroundColor LightYellow
+    BorderColor Black
+}
+
+skinparam database {
+    BackgroundColor LightGreen
+    BorderColor Black
+}
+
+title FitTrack System Architecture
+
+package "Frontend (Client)" {
+    [Browser UI] as Browser
+    [Router] as Router
+    [API Client] as APIClient
+
+    Browser --> Router
+    Router --> APIClient
+}
+
+package "Backend (Server)" {
+    package "Controllers" {
+        [Auth Controller] as AuthCtrl
+        [User Controller] as UserCtrl
+        [Workout Controller] as WorkoutCtrl
+        [Recipe Controller] as RecipeCtrl
+        [Weather Controller] as WeatherCtrl
+    }
+
+    package "Middleware" {
+        [Authentication] as AuthMW
+        [Validation] as ValidMW
+    }
+
+    package "Models" {
+        [User] as UserModel
+        [WeightLog] as WeightModel
+        [Workout] as WorkoutModel
+        [WorkoutLog] as LogModel
+        [Recipe] as RecipeModel
+    }
+}
+
+database "MongoDB" {
+    [Users Collection]
+    [WeightLogs Collection]
+    [Workouts Collection]
+    [WorkoutLogs Collection]
+    [Recipes Collection]
+}
+
+cloud "External APIs" {
+    [OpenWeather API] as Weather
+    [Google Maps API] as Maps
+}
+
+' Frontend to Backend
+APIClient --> AuthMW : HTTP Requests
+
+' Middleware to Controllers
+AuthMW --> AuthCtrl
+AuthMW --> UserCtrl
+AuthMW --> WorkoutCtrl
+AuthMW --> RecipeCtrl
+AuthMW --> WeatherCtrl
+
+' Controllers to Models
+AuthCtrl --> UserModel
+UserCtrl --> UserModel
+UserCtrl --> WeightModel
+UserCtrl --> LogModel
+WorkoutCtrl --> WorkoutModel
+WorkoutCtrl --> LogModel
+RecipeCtrl --> RecipeModel
+
+' Models to Database
+UserModel --> [Users Collection]
+WeightModel --> [WeightLogs Collection]
+WorkoutModel --> [Workouts Collection]
+LogModel --> [WorkoutLogs Collection]
+RecipeModel --> [Recipes Collection]
+
+' External APIs
+WeatherCtrl --> Weather
+WorkoutCtrl --> Maps
+
+note right of Browser
+  React-like SPA with
+  client-side routing
+end note
+
+note right of MongoDB
+  NoSQL database for
+  flexible data storage
+end note
+
+note left of Weather
+  Real-time weather data
+  for workout recommendations
+end note
+
+@enduml
