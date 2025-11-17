@@ -1,10 +1,25 @@
 // BMI Calculator Page
 Router.addRoute('bmi', async (container) => {
+  // Check if user is authenticated and has height
+  let userHasHeight = false;
+  let userHeight = null;
+
+  if (Auth.isAuthenticated()) {
+    try {
+      const response = await API.getMe();
+      userHasHeight = response.user && response.user.height;
+      userHeight = response.user?.height;
+    } catch (error) {
+      console.log('Could not load user data:', error);
+    }
+  }
+
   container.innerHTML = `
     <div class="container my-5">
-      <h2 class="mb-4"><i class="fas fa-calculator me-2"></i>BMI Calculator & Weight Tracker</h2>
+      <h2 class="mb-4"><i class="fas fa-calculator me-2"></i>${userHasHeight ? 'Weight Tracker' : 'BMI Calculator & Weight Tracker'}</h2>
 
       <div class="row">
+        ${!userHasHeight ? `
         <!-- BMI Calculator -->
         <div class="col-md-6 mb-4">
           <div class="card">
@@ -25,12 +40,18 @@ Router.addRoute('bmi', async (container) => {
             </div>
           </div>
         </div>
+        ` : ''}
 
         <!-- Log Weight -->
-        <div class="col-md-6 mb-4">
+        <div class="${userHasHeight ? 'col-md-8 mx-auto' : 'col-md-6'} mb-4">
           <div class="card">
             <div class="card-header">Log Your Weight</div>
             <div class="card-body">
+              ${userHasHeight ? `
+                <div class="alert alert-info mb-3">
+                  <i class="fas fa-info-circle me-2"></i>Your height is set to <strong>${userHeight} cm</strong>. You can update it in your profile.
+                </div>
+              ` : ''}
               <form id="log-weight-form">
                 <div class="mb-3">
                   <label class="form-label">Weight (kg)</label>
@@ -55,28 +76,31 @@ Router.addRoute('bmi', async (container) => {
     </div>
   `;
 
-  // BMI Calculator
-  document.getElementById('bmi-calc-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const height = parseFloat(document.getElementById('calc-height').value);
-    const weight = parseFloat(document.getElementById('calc-weight').value);
+  // BMI Calculator (only if user doesn't have height)
+  const bmiCalcForm = document.getElementById('bmi-calc-form');
+  if (bmiCalcForm) {
+    bmiCalcForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const height = parseFloat(document.getElementById('calc-height').value);
+      const weight = parseFloat(document.getElementById('calc-weight').value);
 
-    try {
-      const response = await API.calculateBMI(height, weight);
-      const result = response.data;
+      try {
+        const response = await API.calculateBMI(height, weight);
+        const result = response.data;
 
-      document.getElementById('bmi-result').innerHTML = `
-        <div class="alert bmi-${result.category.toLowerCase().replace(' ', '-')}" role="alert">
-          <h4 class="alert-heading">BMI: ${result.bmi}</h4>
-          <p class="mb-0"><strong>Category:</strong> ${result.category}</p>
-          <hr>
-          <p class="mb-0">${result.recommendation}</p>
-        </div>
-      `;
-    } catch (error) {
-      Utils.showAlert('Error calculating BMI: ' + error.message, 'danger');
-    }
-  });
+        document.getElementById('bmi-result').innerHTML = `
+          <div class="alert bmi-${result.category.toLowerCase().replace(' ', '-')}" role="alert">
+            <h4 class="alert-heading">BMI: ${result.bmi}</h4>
+            <p class="mb-0"><strong>Category:</strong> ${result.category}</p>
+            <hr>
+            <p class="mb-0">${result.recommendation}</p>
+          </div>
+        `;
+      } catch (error) {
+        Utils.showAlert('Error calculating BMI: ' + error.message, 'danger');
+      }
+    });
+  }
 
   // Log Weight Form
   document.getElementById('log-weight-form').addEventListener('submit', async (e) => {
@@ -738,11 +762,20 @@ window.fetchWeatherData = async (lat, lng, cityName) => {
       </div>
     `;
   } catch (error) {
+    console.error('Weather fetch error:', error);
     container.innerHTML = `
       <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle me-2"></i>Error loading weather data: ${error.message}
+        <hr>
+        <p class="mb-0 small">Please check:</p>
+        <ul class="mb-0 small">
+          <li>OpenWeather API key is configured in server .env file</li>
+          <li>Server is running and responding</li>
+          <li>Internet connection is active</li>
+        </ul>
       </div>
     `;
+    Utils.showAlert('Error loading weather data: ' + error.message, 'danger');
   }
 };
 
@@ -974,20 +1007,24 @@ window.searchNearbyPlaces = (lat, lng, radius, type) => {
   placesService.nearbySearch(request, (results, status) => {
     const listContainer = document.getElementById('locations-list');
 
-    if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-      listContainer.innerHTML = `
-        <div class="card">
-          <div class="card-header bg-primary text-white">
-            <h6 class="mb-0">Found ${results.length} locations</h6>
-          </div>
-          <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
-          </div>
-        </div>
-      `;
+    console.log('Places API Status:', status);
+    console.log('Places API Results:', results);
 
-      const listGroup = listContainer.querySelector('.list-group');
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      if (results && results.length > 0) {
+        listContainer.innerHTML = `
+          <div class="card">
+            <div class="card-header bg-primary text-white">
+              <h6 class="mb-0">Found ${results.length} locations</h6>
+            </div>
+            <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+            </div>
+          </div>
+        `;
 
-      results.forEach((place, index) => {
+        const listGroup = listContainer.querySelector('.list-group');
+
+        results.forEach((place, index) => {
         // Add marker to map
         const marker = new google.maps.Marker({
           position: place.geometry.location,
@@ -1030,18 +1067,43 @@ window.searchNearbyPlaces = (lat, lng, radius, type) => {
         `;
       });
 
-      // Adjust map bounds to show all markers
-      const bounds = new google.maps.LatLngBounds();
-      results.forEach(place => bounds.extend(place.geometry.location));
-      map.fitBounds(bounds);
+        // Adjust map bounds to show all markers
+        const bounds = new google.maps.LatLngBounds();
+        results.forEach(place => bounds.extend(place.geometry.location));
+        map.fitBounds(bounds);
 
-      Utils.showAlert(`Found ${results.length} ${type}(s) nearby`, 'success');
-    } else {
+        Utils.showAlert(`Found ${results.length} ${type}(s) nearby`, 'success');
+      } else {
+        listContainer.innerHTML = `
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No locations found. Try increasing the search radius or selecting a different location type.
+          </div>
+        `;
+        Utils.showAlert('No locations found in this area', 'info');
+      }
+    } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
       listContainer.innerHTML = `
         <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>No locations found. Try increasing the search radius.
+          <i class="fas fa-info-circle me-2"></i>No ${type}s found in this area. Try increasing the search radius.
         </div>
       `;
+      Utils.showAlert('No locations found', 'info');
+    } else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+      listContainer.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>Places API access denied. Please check the Google Maps API key and ensure Places API is enabled.
+        </div>
+      `;
+      Utils.showAlert('Places API access denied. Please check API configuration.', 'danger');
+      console.error('Places API Error: REQUEST_DENIED. Check if Places API is enabled for your API key.');
+    } else {
+      listContainer.innerHTML = `
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>Error searching for locations. Status: ${status}
+        </div>
+      `;
+      Utils.showAlert(`Error searching for locations: ${status}`, 'warning');
+      console.error('Places API Error:', status);
     }
   });
 };
