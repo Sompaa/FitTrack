@@ -32,7 +32,10 @@ const Auth = {
     localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(user));
   },
 
+  // ================================================================
   // Update UI based on auth status
+  // BRANCH-KOMPATIBILIS VERZIÓ - Biztonságos ellenőrzésekkel
+  // ================================================================
   updateUI() {
     const isAuth = this.isAuthenticated();
     const user = this.getUser();
@@ -47,9 +50,35 @@ const Auth = {
     document.getElementById('nav-recipes').style.display = isAuth ? 'block' : 'none';
     document.getElementById('nav-locations').style.display = isAuth ? 'block' : 'none';
 
+    // ================================================================
+    // BIZTONSÁGOS KEDVENCEK KEZELÉS
+    // Csak akkor fut le ha:
+    // 1. FavoritesManager be van töltve
+    // 2. A nav-favorites HTML elem létezik
+    // ================================================================
+    if (typeof FavoritesManager !== 'undefined') {
+      const favNavElement = document.getElementById('nav-favorites');
+      if (favNavElement) {
+        favNavElement.style.display = isAuth ? 'block' : 'none';
+
+        if (isAuth) {
+          const favCount = FavoritesManager.getCount();
+          const badge = document.getElementById('favorites-badge');
+          if (badge) {
+            badge.textContent = favCount;
+            badge.style.display = favCount > 0 ? 'inline-block' : 'none';
+          }
+        }
+      }
+    }
+    // Ha FavoritesManager nincs betöltve, csendes kilépés - nincs hiba!
+
     // Update user name
     if (isAuth && user) {
-      document.getElementById('user-name').textContent = user.name;
+      const userNameElement = document.getElementById('user-name');
+      if (userNameElement) {
+        userNameElement.textContent = user.name;
+      }
     }
   }
 };

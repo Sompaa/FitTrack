@@ -345,3 +345,39 @@ body {
 .modal-header .btn-close {
   filter: brightness(0) invert(1);
 }
+
+/* ================================================================
+   KEDVENC RECEPTEK STÍLUSOK - BRANCH-KOMPATIBILIS
+   ================================================================ */
+
+/* Kedvenc gomb hover effekt */
+.favorite-btn {
+  transition: transform 0.2s ease;
+  border: none;
+  background: none;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+}
+
+.favorite-btn:active {
+  transform: scale(0.95);
+}
+
+/* Kedvencek badge */
+#favorites-badge {
+  font-size: 0.75rem;
+  padding: 0.25em 0.5em;
+  vertical-align: middle;
+}
+
+/* Statisztika kártyák hover effekt */
+.stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
