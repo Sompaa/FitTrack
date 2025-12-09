@@ -352,19 +352,51 @@ Router.addRoute('recipes', async (container) => {
 
     const grid = document.getElementById('recipes-grid');
 
-    // Function to render recipes
+    // ================================================================
+    // RECEPTEK RENDERELÉSE - BRANCH-KOMPATIBILIS VERZIÓ
+    // ================================================================
     const renderRecipes = (recipesToShow) => {
       if (recipesToShow.length === 0) {
         grid.innerHTML = '<div class="col-12"><p>No recipes match your filters.</p></div>';
       } else {
         grid.innerHTML = '';
         recipesToShow.forEach(recipe => {
+
+          // ================================================================
+          // BIZTONSÁGOS KEDVENC GOMB GENERÁLÁS
+          // Ha FavoritesManager nincs betöltve, akkor nem jelenik meg a gomb
+          // Ha Auth nincs, akkor nem jelenik meg a gomb
+          // ================================================================
+          let favoriteButton = '';
+          if (typeof FavoritesManager !== 'undefined' &&
+              typeof Auth !== 'undefined' &&
+              Auth.isAuthenticated()) {
+
+            const isFavorite = FavoritesManager.isFavorite(recipe._id);
+            const starColor = isFavorite ? '#FFD700' : '#CCCCCC';
+            const title = isFavorite ? 'Eltávolítás a kedvencekből' : 'Hozzáadás a kedvencekhez';
+
+            favoriteButton = `
+              <button
+                class="btn btn-link p-0 favorite-btn"
+                onclick="toggleFavoriteRecipe('${recipe._id}')"
+                title="${title}"
+                style="font-size: 1.5rem; text-decoration: none;"
+              >
+                <i class="fas fa-star" style="color: ${starColor};"></i>
+              </button>
+            `;
+          }
+
           grid.innerHTML += `
             <div class="col-md-4 mb-4">
               <div class="card recipe-card h-100">
                 <img src="${recipe.imageUrl}" class="card-img-top" alt="${recipe.name}">
                 <div class="card-body">
-                  <h5 class="card-title">${recipe.name}</h5>
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">${recipe.name}</h5>
+                    ${favoriteButton}
+                  </div>
                   <p class="card-text text-muted small">
                     <i class="fas fa-clock me-1"></i>${recipe.prepTime + recipe.cookTime} min
                     <i class="fas fa-fire ms-2 me-1"></i>${recipe.nutrition.calories} cal
@@ -488,6 +520,124 @@ window.viewRecipe = async (id) => {
     Utils.showAlert('Error loading recipe: ' + error.message, 'danger');
   }
 };
+
+// ================================================================
+// KEDVENCEK OLDAL - BRANCH-KOMPATIBILIS VERZIÓ
+// ================================================================
+
+Router.addRoute('favorites', async (container) => {
+  // Ellenőrzések
+  if (typeof Auth === 'undefined' || !Auth.isAuthenticated()) {
+    if (typeof Router !== 'undefined') {
+      Router.navigate('login');
+    }
+    return;
+  }
+
+  if (typeof FavoritesManager === 'undefined') {
+    container.innerHTML = `
+      <div class="container my-5">
+        <div class="alert alert-danger">
+          <h4>Hiba</h4>
+          <p>A Kedvencek funkció nem elérhető. Hiányzik a favorites.js fájl.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const favorites = FavoritesManager.getFavorites();
+  const stats = FavoritesManager.getStatistics();
+
+  container.innerHTML = `
+    <div class="container my-5">
+      <h2 class="mb-4">
+        <i class="fas fa-star me-2" style="color: #FFD700;"></i>Kedvenc Receptjeim
+      </h2>
+
+      <!-- Statisztikák -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+          <div class="stat-card">
+            <h4>${stats.count}</h4>
+            <p>Összes Kedvenc</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="stat-card">
+            <h4>${stats.avgCalories}</h4>
+            <p>Átlag Kalória</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="stat-card">
+            <h4>${stats.avgTotalTime} min</h4>
+            <p>Átlag Elkészítési Idő</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="stat-card">
+            <h4>${FavoritesManager.MAX_FAVORITES}</h4>
+            <p>Maximum Limit</p>
+          </div>
+        </div>
+      </div>
+
+      ${favorites.length === 0 ? `
+        <!-- Üres állapot -->
+        <div class="alert alert-info text-center py-5">
+          <i class="fas fa-star fa-3x mb-3" style="color: #FFD700; opacity: 0.5;"></i>
+          <h4>Még nincs kedvenc recepted</h4>
+          <p>Böngészd a recepteket és add hozzá a kedvenceidhez a csillag gombra kattintva!</p>
+          <a href="#recipes" class="btn btn-primary mt-3">
+            <i class="fas fa-utensils me-2"></i>Receptek Böngészése
+          </a>
+        </div>
+      ` : `
+        <!-- Receptek Lista -->
+        <div class="row" id="favorites-grid">
+          ${favorites.map(recipe => `
+            <div class="col-md-4 mb-4">
+              <div class="card recipe-card h-100">
+                <img src="${recipe.imageUrl}" class="card-img-top" alt="${recipe.name}">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">${recipe.name}</h5>
+                    <button
+                      class="btn btn-link p-0 favorite-btn"
+                      onclick="toggleFavoriteRecipe('${recipe._id}')"
+                      title="Eltávolítás a kedvencekből"
+                      style="font-size: 1.5rem; text-decoration: none;"
+                    >
+                      <i class="fas fa-star" style="color: #FFD700;"></i>
+                    </button>
+                  </div>
+                  <p class="card-text text-muted small">
+                    <i class="fas fa-clock me-1"></i>${recipe.prepTime + recipe.cookTime} min
+                    <i class="fas fa-fire ms-2 me-1"></i>${recipe.calories} cal
+                    <i class="fas fa-utensils ms-2 me-1"></i>${recipe.servings} servings
+                  </p>
+                  <div class="mb-2">
+                    ${recipe.dietaryInfo?.vegan ? '<span class="badge bg-success">Vegan</span>' : ''}
+                    ${recipe.dietaryInfo?.vegetarian ? '<span class="badge bg-success">Vegetarian</span>' : ''}
+                    ${recipe.dietaryInfo?.keto ? '<span class="badge bg-info">Keto</span>' : ''}
+                    ${recipe.dietaryInfo?.glutenFree ? '<span class="badge bg-warning">Gluten-Free</span>' : ''}
+                  </div>
+                  <p class="text-muted small">
+                    <i class="fas fa-calendar-alt me-1"></i>Hozzáadva: ${new Date(recipe.addedAt).toLocaleDateString('hu-HU')}
+                  </p>
+                  <button class="btn btn-primary btn-sm" onclick="viewRecipe('${recipe._id}')">
+                    Recept Megtekintése
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+});
 
 // Locations Page
 Router.addRoute('locations', (container) => {
@@ -1147,3 +1297,133 @@ window.calculateDistance = (lat1, lon1, lat2, lon2) => {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
+
+// ================================================================
+// KEDVENC RECEPTEK KEZELÉSE - BRANCH-KOMPATIBILIS VERZIÓ
+// ================================================================
+
+/**
+ * Kedvenc recept váltása (hozzáadás/eltávolítás)
+ * BIZTONSÁGOS VERZIÓ - Ellenőrzi hogy minden szükséges van-e betöltve
+ * @param {string} recipeId - Recept azonosító
+ */
+window.toggleFavoriteRecipe = async function(recipeId) {
+  // ================================================================
+  // 1. Ellenőrizzük hogy FavoritesManager be van-e töltve
+  // ================================================================
+  if (typeof FavoritesManager === 'undefined') {
+    console.error('FavoritesManager nincs betöltve! Töltsd be a favorites.js fájlt.');
+    if (typeof Utils !== 'undefined' && Utils.showAlert) {
+      Utils.showAlert('A kedvencek funkció nem elérhető.', 'danger');
+    }
+    return;
+  }
+
+  // ================================================================
+  // 2. Ellenőrizzük hogy Auth be van-e töltve
+  // ================================================================
+  if (typeof Auth === 'undefined') {
+    console.error('Auth nincs betöltve!');
+    return;
+  }
+
+  // ================================================================
+  // 3. Ellenőrizzük hogy be van-e jelentkezve
+  // ================================================================
+  if (!Auth.isAuthenticated()) {
+    if (typeof Utils !== 'undefined' && Utils.showAlert) {
+      Utils.showAlert('Jelentkezz be a kedvencek használatához!', 'warning');
+    }
+    if (typeof Router !== 'undefined') {
+      Router.navigate('login');
+    }
+    return;
+  }
+
+  try {
+    const isFavorite = FavoritesManager.isFavorite(recipeId);
+
+    if (isFavorite) {
+      // ============================================================
+      // ELTÁVOLÍTÁS
+      // ============================================================
+      const success = FavoritesManager.removeFavorite(recipeId);
+      if (success) {
+        if (typeof Utils !== 'undefined' && Utils.showAlert) {
+          Utils.showAlert('Recept eltávolítva a kedvencekből', 'info');
+        }
+
+        // Ha a kedvencek oldalon vagyunk, frissítjük
+        if (typeof Router !== 'undefined' && window.location.hash === '#favorites') {
+          Router.handleRoute();
+        }
+      }
+    } else {
+      // ============================================================
+      // HOZZÁADÁS
+      // ============================================================
+      // Először le kell kérni a teljes receptet az API-ból
+      if (typeof API === 'undefined') {
+        console.error('API nincs betöltve!');
+        return;
+      }
+
+      const response = await API.getRecipe(recipeId);
+      const recipe = response.data;
+
+      const success = FavoritesManager.addFavorite(recipe);
+      if (success) {
+        if (typeof Utils !== 'undefined' && Utils.showAlert) {
+          Utils.showAlert(`${recipe.name} hozzáadva a kedvencekhez!`, 'success');
+        }
+      }
+    }
+
+    // Frissítjük a csillag ikont
+    if (typeof updateFavoriteStars === 'function') {
+      updateFavoriteStars();
+    }
+
+    // Frissítjük a menü számlálót
+    if (typeof Auth !== 'undefined' && Auth.updateUI) {
+      Auth.updateUI();
+    }
+
+  } catch (error) {
+    console.error('Hiba a kedvenc váltásakor:', error);
+    if (typeof Utils !== 'undefined' && Utils.showAlert) {
+      Utils.showAlert('Hiba történt: ' + error.message, 'danger');
+    }
+  }
+};
+
+/**
+ * Összes csillag ikon frissítése
+ * BIZTONSÁGOS VERZIÓ
+ */
+function updateFavoriteStars() {
+  if (typeof FavoritesManager === 'undefined') {
+    return; // Csendes kilépés ha nincs FavoritesManager
+  }
+
+  document.querySelectorAll('.favorite-btn').forEach(btn => {
+    try {
+      const onclickAttr = btn.getAttribute('onclick');
+      if (!onclickAttr) return;
+
+      const match = onclickAttr.match(/'([^']+)'/);
+      if (!match) return;
+
+      const recipeId = match[1];
+      const isFavorite = FavoritesManager.isFavorite(recipeId);
+      const star = btn.querySelector('i');
+
+      if (star) {
+        star.style.color = isFavorite ? '#FFD700' : '#CCCCCC';
+        btn.title = isFavorite ? 'Eltávolítás a kedvencekből' : 'Hozzáadás a kedvencekhez';
+      }
+    } catch (error) {
+      console.error('Hiba a csillag frissítésekor:', error);
+    }
+  });
+}

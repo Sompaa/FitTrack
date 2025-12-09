@@ -72,3 +72,204 @@ const Utils = {
     return 'Obese';
   }
 };
+
+// ================================================================
+// TÉMA KEZELŐ RENDSZER - Theme Manager System
+// ================================================================
+
+const ThemeManager = {
+  // Beállítások
+  STORAGE_KEY: 'fittrack_theme',
+  THEME_DARK: 'dark',
+  THEME_LIGHT: 'light',
+
+  /**
+   * Téma rendszer inicializálása
+   * Lefut amikor az oldal betölt
+   */
+  init() {
+    console.log('🎨 ThemeManager: Inicializálás...');
+
+    // Mentett téma betöltése
+    this.loadSavedTheme();
+
+    // Kapcsoló gomb eseménykezelő hozzáadása
+    this.attachEventListeners();
+
+    // Rendszer téma figyelése (opcionális)
+    this.watchSystemTheme();
+
+    console.log('✅ ThemeManager: Kész!');
+  },
+
+  /**
+   * Mentett téma betöltése localStorage-ből
+   */
+  loadSavedTheme() {
+    const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+    console.log(`📂 Mentett téma: ${savedTheme || 'nincs'}`);
+
+    if (savedTheme === this.THEME_DARK) {
+      this.enableDarkMode(false); // false = nincs animáció betöltéskor
+    } else {
+      this.enableLightMode(false);
+    }
+  },
+
+  /**
+   * Eseménykezelők hozzáadása
+   */
+  attachEventListeners() {
+    const toggleButton = document.getElementById('theme-toggle');
+
+    if (toggleButton) {
+      toggleButton.addEventListener('click', () => {
+        this.toggleTheme();
+      });
+      console.log('🎯 Kapcsoló gomb eseménykezelő hozzáadva');
+    } else {
+      console.warn('⚠️ Kapcsoló gomb nem található!');
+    }
+  },
+
+  /**
+   * Téma váltás
+   */
+  toggleTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+
+    if (isDarkMode) {
+      this.enableLightMode(true);
+    } else {
+      this.enableDarkMode(true);
+    }
+  },
+
+  /**
+   * Sötét mód bekapcsolása
+   * @param {boolean} animate - Animáció használata
+   */
+  enableDarkMode(animate = true) {
+    if (animate) {
+      this.addTransition();
+    }
+
+    document.body.classList.add('dark-mode');
+    this.updateIcon(true);
+    this.saveTheme(this.THEME_DARK);
+
+    console.log('🌙 Sötét mód aktiválva');
+  },
+
+  /**
+   * Világos mód bekapcsolása
+   * @param {boolean} animate - Animáció használata
+   */
+  enableLightMode(animate = true) {
+    if (animate) {
+      this.addTransition();
+    }
+
+    document.body.classList.remove('dark-mode');
+    this.updateIcon(false);
+    this.saveTheme(this.THEME_LIGHT);
+
+    console.log('☀️ Világos mód aktiválva');
+  },
+
+  /**
+   * Smooth átmenet hozzáadása
+   */
+  addTransition() {
+    document.body.style.transition =
+      'background-color 0.3s ease, color 0.3s ease';
+
+    // Átmenet eltávolítása 300ms után
+    setTimeout(() => {
+      document.body.style.transition = '';
+    }, 300);
+  },
+
+  /**
+   * Ikon frissítése
+   * @param {boolean} isDark - Sötét mód aktív-e
+   */
+  updateIcon(isDark) {
+    const icon = document.getElementById('theme-icon');
+
+    if (icon) {
+      // Sötét módban nap ikon, világos módban hold ikon
+      icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+
+      // Kis animáció
+      icon.style.transform = 'rotate(360deg)';
+      setTimeout(() => {
+        icon.style.transform = 'rotate(0deg)';
+      }, 300);
+    }
+  },
+
+  /**
+   * Téma mentése localStorage-be
+   * @param {string} theme - Téma neve
+   */
+  saveTheme(theme) {
+    localStorage.setItem(this.STORAGE_KEY, theme);
+    console.log(`💾 Téma mentve: ${theme}`);
+  },
+
+  /**
+   * Jelenlegi téma lekérdezése
+   * @returns {string} Téma neve
+   */
+  getCurrentTheme() {
+    return document.body.classList.contains('dark-mode')
+      ? this.THEME_DARK
+      : this.THEME_LIGHT;
+  },
+
+  /**
+   * Rendszer téma figyelése (opcionális)
+   * Automatikusan vált ha a felhasználó megváltoztatja a rendszer beállítást
+   */
+  watchSystemTheme() {
+    if (window.matchMedia) {
+      const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      darkModeQuery.addEventListener('change', (e) => {
+        // Csak akkor váltunk, ha nincs mentett preferencia
+        const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+        if (!savedTheme) {
+          if (e.matches) {
+            this.enableDarkMode(true);
+          } else {
+            this.enableLightMode(true);
+          }
+        }
+      });
+    }
+  },
+
+  /**
+   * Téma törlése (reset)
+   */
+  resetTheme() {
+    localStorage.removeItem(this.STORAGE_KEY);
+    this.enableLightMode(true);
+    console.log('🔄 Téma visszaállítva alapértelmezettre');
+  }
+};
+
+// ================================================================
+// Automatikus inicializálás amikor az oldal betölt
+// ================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('📄 DOM betöltve (ThemeManager)');
+  ThemeManager.init();
+});
+
+// ================================================================
+// Globálisan elérhető a konzolból is (teszteléshez)
+// ================================================================
+window.ThemeManager = ThemeManager;
