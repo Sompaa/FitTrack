@@ -39,3 +39,11 @@ coverage/
 # Temporary files
 tmp/
 temp/
+
+# Claude Code IDE files
+.claude/
+
+# Binary/presentation files
+*.pdf
+*.pptx
+*.zip

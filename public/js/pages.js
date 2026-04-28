@@ -1,4 +1,26 @@
-// BMI Calculator Page
+// ================================================================
+// pages.js — Page Template Registry
+// ================================================================
+// Each Router.addRoute() call below defines one "page" of the app.
+// The handler function receives the #app-content DOM element and
+// renders HTML into it. Pages can call API.* methods to load data.
+//
+// TABLE OF CONTENTS (use Ctrl+G to jump to a line number in VS Code):
+//   Line ~17   — BMI Calculator & Weight Tracker        (#bmi)
+//   Line ~300  — Workouts Discovery & Logging           (#workouts)
+//   Line ~650  — Locations Map                          (#locations)
+//   Line ~720  — Recipes Browser                        (#recipes)
+//   Line ~950  — Favorites                              (#favorites)
+//   Line ~1100 — Weather Recommendations                (#weather)
+//   Line ~1250 — User Profile                           (#profile)
+//   Line ~1430 — Sport Places Map (NEW)                 (#sport-places)
+//   Line ~1570 — Admin Dashboard (NEW)                  (#admin)
+//
+// TIP: In VS Code, install "Region Folding" or press Ctrl+Shift+P →
+//      "Fold All" to collapse all #region blocks for an overview.
+// ================================================================
+
+// #region BMI Calculator (#bmi)
 Router.addRoute('bmi', async (container) => {
   // Check if user is authenticated and has height
   let userHasHeight = false;
@@ -639,74 +661,8 @@ Router.addRoute('favorites', async (container) => {
   `;
 });
 
-// Locations Page
-Router.addRoute('locations', (container) => {
-  container.innerHTML = `
-    <div class="container-fluid my-5">
-      <h2 class="mb-4 text-center"><i class="fas fa-map-marker-alt me-2"></i>Find Nearby Fitness Locations</h2>
-
-      <div class="row mb-4">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-3 mb-2">
-                  <label class="form-label">Select City</label>
-                  <select class="form-control" id="location-city">
-                    ${Object.keys(CONFIG.CITIES).map(city => `<option value="${city}">${city}</option>`).join('')}
-                  </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <label class="form-label">Location Type</label>
-                  <select class="form-control" id="location-type">
-                    <option value="gym">Gyms</option>
-                    <option value="park">Parks</option>
-                    <option value="stadium">Stadiums</option>
-                    <option value="swimming_pool">Swimming Pools</option>
-                    <option value="fitness">Fitness Centers</option>
-                  </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <label class="form-label">Radius</label>
-                  <select class="form-control" id="location-radius">
-                    <option value="1000">1 km</option>
-                    <option value="2000">2 km</option>
-                    <option value="5000" selected>5 km</option>
-                    <option value="10000">10 km</option>
-                  </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <label class="form-label">&nbsp;</label>
-                  <button class="btn btn-primary w-100" onclick="searchLocationsByCity()">
-                    <i class="fas fa-search me-2"></i>Search
-                  </button>
-                </div>
-                <div class="col-md-3 mb-2">
-                  <label class="form-label">&nbsp;</label>
-                  <button class="btn btn-outline-primary w-100" onclick="searchLocationsByMyLocation()">
-                    <i class="fas fa-location-arrow me-2"></i>Use My Location
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-8 mb-4">
-          <div id="map" style="height: 500px; border-radius: 8px; overflow: hidden;"></div>
-        </div>
-        <div class="col-md-4">
-          <div id="locations-list"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Initialize Google Maps integration
-  initializeMap();
-});
+// #locations redirects to #sport-places (the old Google-Maps-based page was removed)
+Router.addRoute('locations', () => Router.navigate('sport-places'));
 
 // Weather Page
 Router.addRoute('weather', async (container) => {
@@ -1036,267 +992,6 @@ Router.addRoute('profile', async (container) => {
   }
 });
 
-// ==========================
-// Google Maps Integration
-// ==========================
-
-let map;
-let markers = [];
-let placesService;
-let infoWindow;
-
-// Initialize Google Maps
-window.initializeMap = () => {
-  const mapElement = document.getElementById('map');
-  if (!mapElement) return;
-
-  // Check if Google Maps API is loaded
-  if (typeof google === 'undefined' || !google.maps) {
-    mapElement.innerHTML = `
-      <div class="alert alert-warning h-100 d-flex align-items-center justify-content-center">
-        <div class="text-center">
-          <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
-          <p>Google Maps is loading... Please wait.</p>
-        </div>
-      </div>
-    `;
-
-    // Load Google Maps script if not already loaded
-    if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&callback=initializeMap`;
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    } else {
-      setTimeout(initializeMap, 1000);
-    }
-    return;
-  }
-
-  // Initialize map with default location (Szeged)
-  map = new google.maps.Map(mapElement, {
-    center: CONFIG.DEFAULT_MAP_CENTER,
-    zoom: CONFIG.DEFAULT_MAP_ZOOM,
-    styles: [
-      {
-        featureType: 'poi',
-        elementType: 'labels',
-        stylers: [{ visibility: 'off' }]
-      }
-    ]
-  });
-
-  placesService = new google.maps.places.PlacesService(map);
-  infoWindow = new google.maps.InfoWindow();
-
-  // Auto-search for gyms in Szeged on load
-  setTimeout(() => {
-    const coords = CONFIG.DEFAULT_MAP_CENTER;
-    searchNearbyPlaces(coords.lat, coords.lng, 5000, 'gym');
-  }, 500);
-};
-
-// Search locations by selected city
-window.searchLocationsByCity = () => {
-  const city = document.getElementById('location-city').value;
-  const type = document.getElementById('location-type').value;
-  const radius = parseInt(document.getElementById('location-radius').value);
-
-  const coords = CONFIG.CITIES[city];
-
-  // Center map on selected city
-  map.setCenter(coords);
-  map.setZoom(CONFIG.DEFAULT_MAP_ZOOM);
-
-  searchNearbyPlaces(coords.lat, coords.lng, radius, type);
-};
-
-// Search locations by user's current location
-window.searchLocationsByMyLocation = () => {
-  if (!navigator.geolocation) {
-    Utils.showAlert('Geolocation is not supported by your browser', 'warning');
-    return;
-  }
-
-  Utils.showAlert('Getting your location...', 'info');
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      const type = document.getElementById('location-type').value;
-      const radius = parseInt(document.getElementById('location-radius').value);
-
-      // Center map on user location
-      map.setCenter({ lat, lng });
-      map.setZoom(CONFIG.DEFAULT_MAP_ZOOM);
-
-      searchNearbyPlaces(lat, lng, radius, type);
-    },
-    (error) => {
-      Utils.showAlert('Unable to retrieve your location: ' + error.message, 'danger');
-    }
-  );
-};
-
-// Search nearby places using Google Places API
-window.searchNearbyPlaces = (lat, lng, radius, type) => {
-  // Clear existing markers
-  markers.forEach(marker => marker.setMap(null));
-  markers = [];
-
-  const location = new google.maps.LatLng(lat, lng);
-
-  const request = {
-    location: location,
-    radius: radius,
-    type: [type]
-  };
-
-  placesService.nearbySearch(request, (results, status) => {
-    const listContainer = document.getElementById('locations-list');
-
-    console.log('Places API Status:', status);
-    console.log('Places API Results:', results);
-
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      if (results && results.length > 0) {
-        listContainer.innerHTML = `
-          <div class="card">
-            <div class="card-header bg-primary text-white">
-              <h6 class="mb-0">Found ${results.length} locations</h6>
-            </div>
-            <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
-            </div>
-          </div>
-        `;
-
-        const listGroup = listContainer.querySelector('.list-group');
-
-        results.forEach((place, index) => {
-        // Add marker to map
-        const marker = new google.maps.Marker({
-          position: place.geometry.location,
-          map: map,
-          title: place.name,
-          animation: google.maps.Animation.DROP,
-          label: (index + 1).toString()
-        });
-
-        markers.push(marker);
-
-        // Add click listener to marker
-        marker.addListener('click', () => {
-          showPlaceInfo(place, marker);
-        });
-
-        // Calculate distance
-        const distance = calculateDistance(lat, lng, place.geometry.location.lat(), place.geometry.location.lng());
-
-        // Add to list
-        const rating = place.rating ? `<i class="fas fa-star text-warning"></i> ${place.rating}` : 'No rating';
-        const isOpen = place.opening_hours?.open_now !== undefined
-          ? (place.opening_hours.open_now ? '<span class="badge bg-success">Open now</span>' : '<span class="badge bg-danger">Closed</span>')
-          : '';
-
-        listGroup.innerHTML += `
-          <div class="list-group-item list-group-item-action" onclick="focusMarker(${index})" style="cursor: pointer;">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <h6 class="mb-1">${index + 1}. ${place.name}</h6>
-                <p class="mb-1 small text-muted">${place.vicinity}</p>
-                <p class="mb-0 small">
-                  ${rating}
-                  <span class="ms-2"><i class="fas fa-map-marker-alt"></i> ${distance.toFixed(2)} km</span>
-                  ${isOpen}
-                </p>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-
-        // Adjust map bounds to show all markers
-        const bounds = new google.maps.LatLngBounds();
-        results.forEach(place => bounds.extend(place.geometry.location));
-        map.fitBounds(bounds);
-
-        Utils.showAlert(`Found ${results.length} ${type}(s) nearby`, 'success');
-      } else {
-        listContainer.innerHTML = `
-          <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>No locations found. Try increasing the search radius or selecting a different location type.
-          </div>
-        `;
-        Utils.showAlert('No locations found in this area', 'info');
-      }
-    } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-      listContainer.innerHTML = `
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>No ${type}s found in this area. Try increasing the search radius.
-        </div>
-      `;
-      Utils.showAlert('No locations found', 'info');
-    } else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
-      listContainer.innerHTML = `
-        <div class="alert alert-danger">
-          <i class="fas fa-exclamation-triangle me-2"></i>Places API access denied. Please check the Google Maps API key and ensure Places API is enabled.
-        </div>
-      `;
-      Utils.showAlert('Places API access denied. Please check API configuration.', 'danger');
-      console.error('Places API Error: REQUEST_DENIED. Check if Places API is enabled for your API key.');
-    } else {
-      listContainer.innerHTML = `
-        <div class="alert alert-warning">
-          <i class="fas fa-exclamation-triangle me-2"></i>Error searching for locations. Status: ${status}
-        </div>
-      `;
-      Utils.showAlert(`Error searching for locations: ${status}`, 'warning');
-      console.error('Places API Error:', status);
-    }
-  });
-};
-
-// Focus on specific marker
-window.focusMarker = (index) => {
-  if (markers[index]) {
-    map.setCenter(markers[index].getPosition());
-    map.setZoom(16);
-    google.maps.event.trigger(markers[index], 'click');
-  }
-};
-
-// Show place information in info window
-window.showPlaceInfo = (place, marker) => {
-  const content = `
-    <div style="max-width: 250px;">
-      <h6 class="mb-2">${place.name}</h6>
-      <p class="mb-1 small">${place.vicinity}</p>
-      ${place.rating ? `<p class="mb-1 small"><i class="fas fa-star text-warning"></i> ${place.rating} (${place.user_ratings_total} reviews)</p>` : ''}
-      ${place.opening_hours?.open_now !== undefined ? `<p class="mb-1 small">${place.opening_hours.open_now ? '<span class="text-success">Open now</span>' : '<span class="text-danger">Closed</span>'}</p>` : ''}
-      <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}" target="_blank" class="btn btn-sm btn-primary mt-2">
-        <i class="fas fa-external-link-alt me-1"></i>View on Google Maps
-      </a>
-    </div>
-  `;
-
-  infoWindow.setContent(content);
-  infoWindow.open(map, marker);
-};
-
-// Calculate distance between two points (Haversine formula)
-window.calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Radius of Earth in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
 
 // ================================================================
 // KEDVENC RECEPTEK KEZELÉSE - BRANCH-KOMPATIBILIS VERZIÓ
@@ -1427,3 +1122,447 @@ function updateFavoriteStars() {
     }
   });
 }
+
+// ================================================================
+// #region Sport Places Map (#sport-places)
+// ================================================================
+// Uses Leaflet + OpenStreetMap — completely free, no API key needed.
+// Location data comes from /api/locations/nearby (MongoDB-first,
+// falls back to Google Places API server-side if needed).
+// ================================================================
+
+Router.addRoute('sport-places', async (container) => {
+  container.innerHTML = `
+    <div class="container-fluid my-4">
+      <h2 class="mb-4 text-center">
+        <i class="fas fa-map-marked-alt me-2 text-primary"></i>Sport Places Near You
+      </h2>
+
+      <!-- Search controls -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">City</label>
+              <select class="form-select" id="sp-city">
+                ${Object.keys(CONFIG.CITIES).map(city => `<option value="${city}">${city}</option>`).join('')}
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Type</label>
+              <select class="form-select" id="sp-type">
+                <option value="gym">Gyms</option>
+                <option value="park">Parks</option>
+                <option value="running_track">Running Tracks</option>
+                <option value="swimming_pool">Swimming Pools</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Radius</label>
+              <select class="form-select" id="sp-radius">
+                <option value="1000">1 km</option>
+                <option value="2000">2 km</option>
+                <option value="5000" selected>5 km</option>
+                <option value="10000">10 km</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" onclick="sportPlacesSearch()">
+                <i class="fas fa-search me-1"></i>Search
+              </button>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-outline-secondary w-100" onclick="sportPlacesUseMyLocation()">
+                <i class="fas fa-location-arrow me-1"></i>Use My Location
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map + results side by side -->
+      <div class="row">
+        <div class="col-lg-8 mb-3">
+          <div id="sp-map" style="height: 520px; border-radius: 10px; border: 1px solid #dee2e6;"></div>
+        </div>
+        <div class="col-lg-4" style="max-height:540px; overflow-y:auto;">
+          <div id="sp-results">
+            <div class="text-muted text-center mt-5">
+              <i class="fas fa-map-pin fa-2x mb-2 d-block"></i>
+              Select a city and type, then click Search.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // ---- Load Leaflet CSS + JS dynamically (no API key required) ----
+  function loadLeaflet(callback) {
+    if (window.L) { callback(); return; }
+
+    // Leaflet CSS
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Leaflet JS
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = callback;
+    document.head.appendChild(script);
+  }
+
+  // ---- Shared state ----
+  let spMap = null;
+  let spMarkers = [];
+  let spCurrentLat = CONFIG.DEFAULT_MAP_CENTER.lat;
+  let spCurrentLng = CONFIG.DEFAULT_MAP_CENTER.lng;
+
+  // ---- Initialize the Leaflet map ----
+  function initMap() {
+    spMap = L.map('sp-map').setView([spCurrentLat, spCurrentLng], CONFIG.DEFAULT_MAP_ZOOM);
+
+    // OpenStreetMap tiles — free, no key needed
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(spMap);
+  }
+
+  // ---- Remove all markers from the map ----
+  function clearMarkers() {
+    spMarkers.forEach(m => spMap.removeLayer(m));
+    spMarkers = [];
+  }
+
+  // ---- Drop markers and populate the results panel ----
+  function renderResults(places) {
+    clearMarkers();
+    const resultsDiv = document.getElementById('sp-results');
+
+    if (!places || places.length === 0) {
+      resultsDiv.innerHTML = '<div class="alert alert-info">No places found. Try a larger radius.</div>';
+      return;
+    }
+
+    let cardsHTML = `<p class="text-muted small mb-2">${places.length} place(s) found</p>`;
+    const bounds = [];
+
+    places.forEach((place, index) => {
+      const lat = place.location.lat;
+      const lng = place.location.lng;
+      const stars = '⭐'.repeat(Math.round(place.rating || 0));
+
+      // Numbered circle icon
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="
+          background:#0d6efd;color:#fff;border-radius:50%;
+          width:28px;height:28px;line-height:28px;
+          text-align:center;font-weight:700;font-size:13px;
+          box-shadow:0 2px 6px rgba(0,0,0,0.35)">
+          ${index + 1}
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const marker = L.marker([lat, lng], { icon }).addTo(spMap);
+
+      // Popup shown when marker is clicked
+      marker.bindPopup(`
+        <strong>${place.name}</strong><br>
+        <span style="color:#666;font-size:12px">${place.address || ''}</span><br>
+        ${place.rating ? `${stars} ${place.rating.toFixed(1)}` : ''}
+      `);
+
+      spMarkers.push(marker);
+      bounds.push([lat, lng]);
+
+      cardsHTML += `
+        <div class="card mb-2 shadow-sm" style="cursor:pointer" onclick="spFocusMarker(${index})">
+          <div class="card-body py-2 px-3">
+            <div class="fw-semibold">${index + 1}. ${place.name}</div>
+            <div class="text-muted small">${place.address || ''}</div>
+            ${place.rating ? `<div class="small">${stars} ${place.rating.toFixed(1)}</div>` : ''}
+            ${place.amenities && place.amenities.length > 0
+              ? `<div class="text-muted" style="font-size:11px">${place.amenities.slice(0, 3).join(' · ')}</div>`
+              : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    resultsDiv.innerHTML = cardsHTML;
+
+    // Zoom map to fit all markers
+    if (bounds.length > 1) {
+      spMap.fitBounds(bounds, { padding: [30, 30] });
+    } else if (bounds.length === 1) {
+      spMap.setView(bounds[0], 15);
+    }
+  }
+
+  // ---- Pan to a marker and open its popup when a card is clicked ----
+  window.spFocusMarker = function(index) {
+    if (spMarkers[index]) {
+      spMap.setView(spMarkers[index].getLatLng(), 16);
+      spMarkers[index].openPopup();
+    }
+  };
+
+  // ---- Search by selected city ----
+  window.sportPlacesSearch = async function() {
+    const city = document.getElementById('sp-city').value;
+    const coords = CONFIG.CITIES[city];
+    if (coords) {
+      spCurrentLat = coords.lat;
+      spCurrentLng = coords.lng;
+      spMap.setView([spCurrentLat, spCurrentLng], CONFIG.DEFAULT_MAP_ZOOM);
+    }
+    await doSearch();
+  };
+
+  // ---- Search using browser geolocation ----
+  window.sportPlacesUseMyLocation = function() {
+    if (!navigator.geolocation) {
+      Utils.showAlert('Geolocation is not supported by your browser.', 'warning');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        spCurrentLat = position.coords.latitude;
+        spCurrentLng = position.coords.longitude;
+        spMap.setView([spCurrentLat, spCurrentLng], 14);
+        await doSearch();
+      },
+      () => Utils.showAlert('Could not get your location. Check browser permissions.', 'warning')
+    );
+  };
+
+  // ---- Call the backend and render results ----
+  async function doSearch() {
+    const type = document.getElementById('sp-type').value;
+    const radius = document.getElementById('sp-radius').value;
+    const resultsDiv = document.getElementById('sp-results');
+    resultsDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+
+    try {
+      const response = await API.getNearbyLocations(spCurrentLat, spCurrentLng, radius, type);
+      renderResults(response.data);
+    } catch (error) {
+      console.error('[sport-places] Search failed:', error);
+      resultsDiv.innerHTML = `<div class="alert alert-danger">Search failed: ${error.message}</div>`;
+    }
+  }
+
+  // ---- Boot: load Leaflet, then initialize the map ----
+  loadLeaflet(initMap);
+});
+// #endregion Sport Places
+
+
+// ================================================================
+// #region Admin Dashboard (#admin and #admin/:userId)
+// ================================================================
+// Only visible to users with isAdmin: true.
+// #admin       → lists all users with a "View Details" button
+// #admin/ID    → shows one user's weight chart + workout log table
+// ================================================================
+
+Router.addRoute('admin', async (container, params) => {
+  // Guard: redirect non-admins immediately
+  const currentUser = Auth.getUser();
+  if (!currentUser || !currentUser.isAdmin) {
+    container.innerHTML = '<div class="container mt-5"><div class="alert alert-danger">Access denied. Admin only.</div></div>';
+    return;
+  }
+
+  // params[0] is the userId for the detail view (e.g. #admin/abc123)
+  const targetUserId = params && params[0];
+
+  if (targetUserId) {
+    // ---- USER DETAIL VIEW ----
+    Utils.showLoading(container);
+
+    try {
+      const [statsRes, weightRes, workoutsRes] = await Promise.all([
+        API.getAdminUserStats(targetUserId),
+        API.getAdminUserWeight(targetUserId, 30),
+        API.getAdminUserWorkouts(targetUserId, 30)
+      ]);
+
+      const weightLogs = weightRes.data || [];
+      const workoutLogs = workoutsRes.data || [];
+
+      container.innerHTML = `
+        <div class="container my-4">
+          <a href="#admin" class="btn btn-outline-secondary btn-sm mb-4">
+            <i class="fas fa-arrow-left me-1"></i>Back to Users
+          </a>
+          <h3 class="mb-4"><i class="fas fa-user me-2"></i>User Details</h3>
+
+          <!-- Stats Cards -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-3">
+              <div class="card text-center shadow-sm">
+                <div class="card-body">
+                  <div class="h4 text-primary">${statsRes.data.latestWeight ? statsRes.data.latestWeight + ' kg' : 'N/A'}</div>
+                  <div class="text-muted small">Current Weight</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center shadow-sm">
+                <div class="card-body">
+                  <div class="h4 text-info">${statsRes.data.latestBmi ? statsRes.data.latestBmi.toFixed(1) : 'N/A'}</div>
+                  <div class="text-muted small">BMI</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center shadow-sm">
+                <div class="card-body">
+                  <div class="h4 text-success">${statsRes.data.workouts.totalWorkouts}</div>
+                  <div class="text-muted small">Workouts (30 days)</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center shadow-sm">
+                <div class="card-body">
+                  <div class="h4 text-warning">${statsRes.data.workouts.totalCalories}</div>
+                  <div class="text-muted small">Calories Burned</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weight Chart -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header"><i class="fas fa-chart-line me-2"></i>Weight History (30 days)</div>
+            <div class="card-body">
+              <canvas id="admin-weight-chart" height="80"></canvas>
+            </div>
+          </div>
+
+          <!-- Workout Log Table -->
+          <div class="card shadow-sm">
+            <div class="card-header"><i class="fas fa-dumbbell me-2"></i>Recent Workouts</div>
+            <div class="card-body p-0">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Workout</th>
+                    <th>Duration</th>
+                    <th>Calories</th>
+                    <th>Effort (RPE)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${workoutLogs.length === 0
+                    ? '<tr><td colspan="5" class="text-center text-muted py-3">No workouts logged yet.</td></tr>'
+                    : workoutLogs.map(log => `
+                        <tr>
+                          <td>${Utils.formatDate(log.date)}</td>
+                          <td>${log.workoutId ? log.workoutId.name : 'Unknown'}</td>
+                          <td>${log.duration} min</td>
+                          <td>${log.caloriesBurned} kcal</td>
+                          <td>${log.perceivedEffort ? log.perceivedEffort + '/10' : '—'}</td>
+                        </tr>
+                      `).join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Render weight chart with Chart.js
+      if (weightLogs.length > 0) {
+        const ctx = document.getElementById('admin-weight-chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: weightLogs.map(l => Utils.formatDate(l.date)),
+            datasets: [{
+              label: 'Weight (kg)',
+              data: weightLogs.map(l => l.weight),
+              borderColor: '#2ecc71',
+              backgroundColor: 'rgba(46,204,113,0.1)',
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { title: { display: true, text: 'kg' } } }
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error('[admin] Failed to load user detail for:', targetUserId, error);
+      container.innerHTML = `<div class="container mt-5"><div class="alert alert-danger">Failed to load user data: ${error.message}</div></div>`;
+    }
+
+  } else {
+    // ---- USER LIST VIEW ----
+    Utils.showLoading(container);
+
+    try {
+      const res = await API.getAdminUsers();
+      const users = res.data || [];
+
+      container.innerHTML = `
+        <div class="container my-4">
+          <h3 class="mb-4"><i class="fas fa-shield-alt me-2 text-warning"></i>Admin — All Users</h3>
+
+          <div class="card shadow-sm">
+            <div class="card-body p-0">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Fitness Level</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${users.map(u => `
+                    <tr>
+                      <td class="fw-semibold">${u.name}</td>
+                      <td>${u.email}</td>
+                      <td><span class="badge bg-secondary">${u.fitnessLevel}</span></td>
+                      <td>${u.isAdmin ? '<span class="badge bg-warning text-dark">Admin</span>' : '<span class="badge bg-light text-dark">User</span>'}</td>
+                      <td>${Utils.formatDate(u.createdAt)}</td>
+                      <td>
+                        <a href="#admin/${u._id}" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-chart-bar me-1"></i>View
+                        </a>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('[admin] Failed to load user list:', error);
+      container.innerHTML = `<div class="container mt-5"><div class="alert alert-danger">Failed to load users: ${error.message}</div></div>`;
+    }
+  }
+});
+// #endregion Admin Dashboard

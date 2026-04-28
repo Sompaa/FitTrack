@@ -36,13 +36,12 @@ const workoutSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['cardio', 'strength', 'flexibility', 'mixed'],
+    enum: ['cardio', 'strength', 'flexibility', 'mixed', 'hiit', 'yoga', 'swimming'],
     required: true,
     index: true
   },
   equipment: [{
-    type: String,
-    enum: ['none', 'dumbbells', 'resistance-band', 'kettlebell', 'barbell', 'mat', 'pull-up-bar', 'bench']
+    type: String
   }],
   exercises: [exerciseSchema],
   suitableFor: {

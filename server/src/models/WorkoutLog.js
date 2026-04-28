@@ -30,6 +30,18 @@ const workoutLogSchema = new mongoose.Schema({
     min: 1,
     max: 5
   },
+  // RPE (Rate of Perceived Exertion) scale 1-10 — per ER diagram
+  perceivedEffort: {
+    type: Number,
+    min: 1,
+    max: 10
+  },
+  // Optional: where the workout took place — links to Location model
+  locationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Location',
+    required: false
+  },
   notes: {
     type: String,
     maxlength: 500

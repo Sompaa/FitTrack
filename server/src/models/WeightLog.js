@@ -23,6 +23,12 @@ const weightLogSchema = new mongoose.Schema({
     default: Date.now,
     index: true
   },
+  // When during the day was the measurement taken? (per ER diagram)
+  measurementTime: {
+    type: String,
+    enum: ['morning', 'evening'],
+    default: 'morning'
+  },
   notes: {
     type: String,
     maxlength: [500, 'Notes cannot exceed 500 characters']
