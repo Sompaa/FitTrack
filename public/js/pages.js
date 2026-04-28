@@ -1151,6 +1151,7 @@ Router.addRoute('sport-places', async (container) => {
             <div class="col-md-2">
               <label class="form-label fw-semibold">Type</label>
               <select class="form-select" id="sp-type">
+                <option value="">All Types</option>
                 <option value="fitness_center">Fitness Centers</option>
                 <option value="gym">Gyms</option>
                 <option value="sports_hall">Sports Halls</option>
