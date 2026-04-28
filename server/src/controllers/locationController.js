@@ -36,7 +36,12 @@ exports.getNearbyLocations = async (req, res) => {
 
     const searchRadius = Number(radius) || 5000;
 
-    const typeMap = { gym: 'gym', park: 'park', running_track: 'running_track', swimming_pool: 'swimming_pool', stadium: 'gym' };
+    const typeMap = {
+      gym: 'gym', park: 'park', running_track: 'running_track',
+      swimming_pool: 'swimming_pool', stadium: 'gym',
+      trail: 'trail', sports_hall: 'sports_hall', outdoor: 'outdoor',
+      fitness_center: 'fitness_center', pilates_studio: 'pilates_studio'
+    };
     const searchType = typeMap[type] || 'gym';
 
     // ---- Step 1: MongoDB $near query ----

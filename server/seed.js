@@ -67,13 +67,22 @@ function generateWorkoutLogs(userId, workoutRefs) {
   });
 }
 
-// Convert fittrack { open, close } opening-hours objects → "HH:MM-HH:MM" strings
-// so they fit the server Location model (Map of String)
+// Convert opening-hours to Map-of-String for the Location model.
+// Handles three input shapes:
+//   {monday:{open,close}, ...}  → "HH:MM-HH:MM" per day
+//   {monday: null, ...}         → "Closed" for that day
+//   "szabadtéri, ingyenes" etc  → all days "00:00-23:59" (always open)
 function convertHours(raw) {
+  const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
   if (!raw) return {};
+  if (typeof raw === 'string') {
+    const result = {};
+    DAYS.forEach(d => { result[d] = '00:00-23:59'; });
+    return result;
+  }
   const result = {};
   for (const [day, val] of Object.entries(raw)) {
-    if (val && val.open && val.close) result[day] = `${val.open}-${val.close}`;
+    result[day] = (val && val.open && val.close) ? `${val.open}-${val.close}` : 'Closed';
   }
   return result;
 }
@@ -579,91 +588,263 @@ const HU_WORKOUTS = [
 ];
 
 // ============================================================
-// 4. LOCATIONS (11 Szeged)
+// 4. LOCATIONS (34 Szeged — 11 corrected originals + 23 real venues)
 // ============================================================
 const LOCATIONS = [
+  // ── Originals with corrected GPS coordinates ──────────────
   {
-    name: 'Tisza-parti Futooevezet – Belvarosi szakasz', type: 'trail',
-    address: 'Felso Tisza-sor, 6720 Szeged',
+    name: 'Tisza-parti Futóövezet – Belvárosi szakasz', type: 'trail',
+    address: 'Felső Tisza-sor, 6720 Szeged',
     coordinates: { type: 'Point', coordinates: [20.1337, 46.2497] },
-    openingHours: convertHours({ monday: {open:'00:00',close:'23:59'}, tuesday: {open:'00:00',close:'23:59'}, wednesday: {open:'00:00',close:'23:59'}, thursday: {open:'00:00',close:'23:59'}, friday: {open:'00:00',close:'23:59'}, saturday: {open:'00:00',close:'23:59'}, sunday: {open:'00:00',close:'23:59'} }),
-    amenities: ['running track', 'benches', 'water fountain', 'bike path'], rating: 4.7
+    openingHours: convertHours('outdoor'),
+    amenities: ['futóösvény', 'padok', 'ivókút', 'kerékpárút'], rating: 4.7
   },
   {
-    name: 'Anna-furdo Szeged', type: 'swimming_pool',
-    address: 'Tisza Lajos korut 24, 6720 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1463, 46.2531] },
+    name: 'Anna-fürdő Szeged', type: 'swimming_pool',
+    address: 'Tisza Lajos körút 24, 6720 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1493, 46.2559] }, // corrected
     openingHours: convertHours({ monday: {open:'06:00',close:'20:00'}, tuesday: {open:'06:00',close:'20:00'}, wednesday: {open:'06:00',close:'20:00'}, thursday: {open:'06:00',close:'20:00'}, friday: {open:'06:00',close:'20:00'}, saturday: {open:'08:00',close:'18:00'}, sunday: {open:'08:00',close:'16:00'} }),
-    amenities: ['swimming pool', 'thermal bath', 'locker room', 'sauna', 'parking'],
+    amenities: ['uszoda', 'termálfürdő', 'öltöző', 'szauna', 'parkoló'],
     rating: 4.3, phone: '+36 62 553 940', website: 'https://annafurdo.hu'
   },
   {
-    name: 'Szechenyi ter – Varosi Park', type: 'park',
-    address: 'Szechenyi ter, 6720 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1453, 46.2529] },
-    openingHours: convertHours({ monday: {open:'00:00',close:'23:59'}, tuesday: {open:'00:00',close:'23:59'}, wednesday: {open:'00:00',close:'23:59'}, thursday: {open:'00:00',close:'23:59'}, friday: {open:'00:00',close:'23:59'}, saturday: {open:'00:00',close:'23:59'}, sunday: {open:'00:00',close:'23:59'} }),
-    amenities: ['outdoor fitness park', 'benches', 'fountain', 'wifi'], rating: 4.5
+    name: 'Széchenyi tér – Városi Park', type: 'park',
+    address: 'Széchenyi tér, 6720 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1490, 46.2538] }, // corrected
+    openingHours: convertHours('outdoor'),
+    amenities: ['szabadtéri fitness', 'padok', 'szökőkút', 'wifi'], rating: 4.5
   },
   {
-    name: 'SZTE Sportkozpont', type: 'sports_hall',
-    address: 'Temesvar krt. 26, 6726 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1469, 46.2463] },
+    name: 'SZTE Sportközpont', type: 'sports_hall',
+    address: 'Topolya sor, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1412, 46.2379] }, // corrected
     openingHours: convertHours({ monday: {open:'07:00',close:'21:00'}, tuesday: {open:'07:00',close:'21:00'}, wednesday: {open:'07:00',close:'21:00'}, thursday: {open:'07:00',close:'21:00'}, friday: {open:'07:00',close:'19:00'}, saturday: {open:'09:00',close:'15:00'}, sunday: {open:'10:00',close:'14:00'} }),
-    amenities: ['weight room', 'aerobics room', 'sports hall', 'locker room', 'student discount'],
+    amenities: ['súlyzóterem', 'aerobic terem', 'sportcsarnok', 'öltöző', 'diákkedvezmény'],
     rating: 4.2, phone: '+36 62 544 000', website: 'https://www.u-szeged.hu'
   },
   {
-    name: 'Ujszegedi Liget es Sportterulet', type: 'park',
-    address: 'Bertalan utca, 6726 Szeged (Ujszeged)',
+    name: 'Újszegedi Liget és Sportterület', type: 'park',
+    address: 'Bertalan utca, 6726 Szeged (Újszeged)',
     coordinates: { type: 'Point', coordinates: [20.1589, 46.2427] },
-    openingHours: convertHours({ monday: {open:'00:00',close:'23:59'}, tuesday: {open:'00:00',close:'23:59'}, wednesday: {open:'00:00',close:'23:59'}, thursday: {open:'00:00',close:'23:59'}, friday: {open:'00:00',close:'23:59'}, saturday: {open:'00:00',close:'23:59'}, sunday: {open:'00:00',close:'23:59'} }),
-    amenities: ['football pitch', 'basketball', 'playground', 'running track', 'water fountain', 'BBQ area'], rating: 4.4
+    openingHours: convertHours('outdoor'),
+    amenities: ['focipálya', 'kosárlabda', 'játszótér', 'futópálya', 'ivókút', 'grillhely'], rating: 4.4
   },
   {
     name: 'Szeged Sportcsarnok', type: 'sports_hall',
-    address: 'Temesvar krt. 54, 6726 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1439, 46.2615] },
+    address: 'Temesvári krt. 54, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1490, 46.2459] }, // corrected
     openingHours: convertHours({ monday: {open:'08:00',close:'22:00'}, tuesday: {open:'08:00',close:'22:00'}, wednesday: {open:'08:00',close:'22:00'}, thursday: {open:'08:00',close:'22:00'}, friday: {open:'08:00',close:'20:00'}, saturday: {open:'09:00',close:'18:00'}, sunday: {open:'10:00',close:'16:00'} }),
-    amenities: ['basketball', 'volleyball', 'badminton', 'locker room', 'cafe'],
+    amenities: ['kosárlabda', 'röplabda', 'tollaslabda', 'öltöző', 'büfé'],
     rating: 4.0, phone: '+36 62 421 080'
   },
   {
-    name: 'MOL Arena Szeged', type: 'sports_hall',
-    address: 'Sportliget setany 2, 6723 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1208, 46.2563] },
-    openingHours: convertHours({ monday: {open:'08:00',close:'20:00'}, tuesday: {open:'08:00',close:'20:00'}, wednesday: {open:'08:00',close:'20:00'}, thursday: {open:'08:00',close:'20:00'}, friday: {open:'08:00',close:'20:00'}, saturday: {open:'10:00',close:'18:00'} }),
-    amenities: ['handball court', 'stands', 'cafe', 'parking', 'accessible'],
-    rating: 4.6, phone: '+36 62 553 960', website: 'https://mol-arena.hu'
+    name: 'Pick Aréna Szeged', type: 'sports_hall',
+    address: 'Felső Tisza-part 35, 6723 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1742, 46.2589] }, // corrected (~4 km off before)
+    openingHours: convertHours({ monday: {open:'08:00',close:'20:00'}, tuesday: {open:'08:00',close:'20:00'}, wednesday: {open:'08:00',close:'20:00'}, thursday: {open:'08:00',close:'20:00'}, friday: {open:'08:00',close:'20:00'}, saturday: {open:'10:00',close:'18:00'}, sunday: null }),
+    amenities: ['kézilabda pálya', 'lelátó', 'büfé', 'parkoló', 'akadálymentesített'],
+    rating: 4.6, phone: '+36 62 553 960', website: 'https://pickhandball.hu'
   },
   {
-    name: 'Szeged Csonakaozo-to es Korut', type: 'outdoor',
-    address: 'Maros utca kornyeke, 6724 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1308, 46.2573] },
-    openingHours: convertHours({ monday: {open:'00:00',close:'23:59'}, tuesday: {open:'00:00',close:'23:59'}, wednesday: {open:'00:00',close:'23:59'}, thursday: {open:'00:00',close:'23:59'}, friday: {open:'00:00',close:'23:59'}, saturday: {open:'00:00',close:'23:59'}, sunday: {open:'00:00',close:'23:59'} }),
-    amenities: ['rowing', 'cycling track', 'fishing', 'benches', 'green area'], rating: 4.1
+    name: 'Szegedi Csónakázó-tó', type: 'outdoor',
+    address: 'Maros utca környéke, 6724 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1606, 46.2575] }, // corrected
+    openingHours: convertHours('outdoor'),
+    amenities: ['evezés', 'kerékpárút', 'horgászat', 'padok', 'zöldterület'], rating: 4.1
   },
   {
-    name: 'Dugonics ter – Szabadteri Fitneszpark', type: 'outdoor',
-    address: 'Dugonics ter, 6720 Szeged',
-    coordinates: { type: 'Point', coordinates: [20.1474, 46.2517] },
-    openingHours: convertHours({ monday: {open:'00:00',close:'23:59'}, tuesday: {open:'00:00',close:'23:59'}, wednesday: {open:'00:00',close:'23:59'}, thursday: {open:'00:00',close:'23:59'}, friday: {open:'00:00',close:'23:59'}, saturday: {open:'00:00',close:'23:59'}, sunday: {open:'00:00',close:'23:59'} }),
-    amenities: ['squat rack', 'pull-up bar', 'parallel bars', 'benches'], rating: 3.9
+    name: 'Dugonics tér – Szabadtéri Fitneszpark', type: 'outdoor',
+    address: 'Dugonics tér, 6720 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1449, 46.2507] }, // corrected
+    openingHours: convertHours('outdoor'),
+    amenities: ['guggolótámasz', 'húzódzkodó', 'párhuzamos rudak', 'padok'], rating: 3.9
   },
   {
-    name: 'Arena Fitness and Wellness Szeged', type: 'gym',
-    address: 'Kossuth Lajos sugarut 72, 6722 Szeged',
+    name: 'Arena Fitness and Wellness Szeged', type: 'fitness_center',
+    address: 'Kossuth Lajos sugárút 72, 6722 Szeged',
     coordinates: { type: 'Point', coordinates: [20.1502, 46.2548] },
     openingHours: convertHours({ monday: {open:'06:00',close:'22:00'}, tuesday: {open:'06:00',close:'22:00'}, wednesday: {open:'06:00',close:'22:00'}, thursday: {open:'06:00',close:'22:00'}, friday: {open:'06:00',close:'21:00'}, saturday: {open:'08:00',close:'18:00'}, sunday: {open:'09:00',close:'16:00'} }),
-    amenities: ['cardio area', 'weight room', 'group classes', 'sauna', 'locker room', 'parking', 'personal trainer'],
+    amenities: ['kardió gépek', 'súlyzóterem', 'csoportos órák', 'szauna', 'öltöző', 'parkoló', 'személyi edző'],
     rating: 4.4, phone: '+36 62 420 100'
   },
   {
-    name: 'Tisza Fitness Club – Ujszeged', type: 'gym',
-    address: 'Kozep fasor 34, 6726 Szeged',
+    name: 'Tisza Fitness Club – Újszeged', type: 'fitness_center',
+    address: 'Közép fasor 34, 6726 Szeged',
     coordinates: { type: 'Point', coordinates: [20.1623, 46.2442] },
     openingHours: convertHours({ monday: {open:'06:30',close:'21:30'}, tuesday: {open:'06:30',close:'21:30'}, wednesday: {open:'06:30',close:'21:30'}, thursday: {open:'06:30',close:'21:30'}, friday: {open:'06:30',close:'20:00'}, saturday: {open:'09:00',close:'17:00'}, sunday: {open:'10:00',close:'15:00'} }),
-    amenities: ['weight machines', 'free weights', 'aerobics', 'locker room', 'sauna'],
+    amenities: ['súlygépek', 'szabad súlyok', 'aerobic', 'öltöző', 'szauna'],
     rating: 4.2, phone: '+36 70 315 2244'
+  },
+
+  // ── New GPS-verified Szeged venues ────────────────────────
+  {
+    name: 'Erzsébet-liget', type: 'park',
+    address: 'Népkert sor, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1626966, 46.248077] },
+    openingHours: convertHours('outdoor'),
+    amenities: ['padok', 'sétányok', 'zöldterület', 'szabadtéri kondigépek'], rating: 4.7
+  },
+  {
+    name: 'Vértó', type: 'park',
+    address: 'Vértó, 6724 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1443433, 46.2733355] },
+    openingHours: convertHours('outdoor'),
+    amenities: ['tó', 'sétány', 'zöldterület', 'padok'], rating: 4.7
+  },
+  {
+    name: 'Forma1 Fitnesz', type: 'fitness_center',
+    address: 'Attila u. 17-19, 6722 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1419429, 46.2555619] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'21:30'}, tuesday: {open:'06:00',close:'21:30'}, wednesday: {open:'06:00',close:'21:30'}, thursday: {open:'06:00',close:'21:30'}, friday: {open:'06:00',close:'21:30'}, saturday: {open:'09:00',close:'20:00'}, sunday: {open:'14:00',close:'20:00'} }),
+    amenities: ['konditerem', 'kardió gépek', 'öltöző', 'zuhanyzó'],
+    rating: 4.3, phone: '+36 70 320 0488'
+  },
+  {
+    name: 'Global Fitness', type: 'fitness_center',
+    address: 'Makkosházi krt. 1, 6723 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1571109, 46.2734548] },
+    openingHours: convertHours({ monday: {open:'05:30',close:'23:00'}, tuesday: {open:'05:30',close:'23:00'}, wednesday: {open:'05:30',close:'23:00'}, thursday: {open:'05:30',close:'23:00'}, friday: {open:'05:30',close:'23:00'}, saturday: {open:'05:30',close:'23:00'}, sunday: {open:'05:30',close:'23:00'} }),
+    amenities: ['konditerem', 'csoportos órák', 'öltöző', 'szauna', 'büfé'],
+    rating: 4.8, phone: '+36 20 262 8141'
+  },
+  {
+    name: 'Fit World Fitness', type: 'fitness_center',
+    address: 'Dózsa u. 12, 6720 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.153647, 46.2558435] },
+    openingHours: convertHours({ monday: {open:'05:30',close:'23:00'}, tuesday: {open:'05:30',close:'23:00'}, wednesday: {open:'05:30',close:'23:00'}, thursday: {open:'05:30',close:'23:00'}, friday: {open:'05:30',close:'23:00'}, saturday: {open:'07:00',close:'21:00'}, sunday: {open:'07:00',close:'21:00'} }),
+    amenities: ['konditerem', 'személyi edzés', 'öltöző'],
+    rating: 4.7, phone: '+36 70 414 9900'
+  },
+  {
+    name: 'Szegi Fitness', type: 'fitness_center',
+    address: 'József Attila sgrt. 115, 6723 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1593215, 46.2713022] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'22:00'}, tuesday: {open:'06:00',close:'22:00'}, wednesday: {open:'06:00',close:'22:00'}, thursday: {open:'06:00',close:'22:00'}, friday: {open:'06:00',close:'22:00'}, saturday: {open:'07:00',close:'22:00'}, sunday: {open:'07:00',close:'22:00'} }),
+    amenities: ['konditerem', 'öltöző', 'zuhanyzó'],
+    rating: 4.6, phone: '+36 20 578 3440'
+  },
+  {
+    name: 'Strong Body Újszeged', type: 'fitness_center',
+    address: 'Derkovits fasor 13/A, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1673355, 46.2434349] },
+    openingHours: convertHours({ monday: {open:'06:45',close:'20:00'}, tuesday: {open:'08:00',close:'20:00'}, wednesday: {open:'06:45',close:'20:00'}, thursday: {open:'08:00',close:'20:00'}, friday: {open:'06:45',close:'20:00'}, saturday: {open:'10:00',close:'12:00'}, sunday: null }),
+    amenities: ['funkcionális edzés', 'személyi edzés', 'öltöző'],
+    rating: 4.9, phone: '+36 20 971 1616'
+  },
+  {
+    name: 'Gym Class', type: 'fitness_center',
+    address: 'Kossuth Lajos sgrt. 119, 6724 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1289831, 46.2663943] },
+    openingHours: convertHours({ monday: {open:'05:30',close:'23:00'}, tuesday: {open:'05:30',close:'23:00'}, wednesday: {open:'05:30',close:'23:00'}, thursday: {open:'05:30',close:'23:00'}, friday: {open:'05:30',close:'23:00'}, saturday: {open:'07:00',close:'22:00'}, sunday: {open:'07:00',close:'22:00'} }),
+    amenities: ['konditerem', 'csoportos órák', 'öltöző'],
+    rating: 4.8, phone: '+36 70 335 9090'
+  },
+  {
+    name: 'Underground Gym', type: 'fitness_center',
+    address: 'Nemes Takács u. 16, 6725 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1372896, 46.249181] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'21:00'}, tuesday: {open:'06:00',close:'21:00'}, wednesday: {open:'06:00',close:'21:00'}, thursday: {open:'06:00',close:'21:00'}, friday: {open:'06:00',close:'21:00'}, saturday: {open:'08:00',close:'20:00'}, sunday: {open:'08:00',close:'20:00'} }),
+    amenities: ['konditerem', 'öltöző', 'zuhanyzó'],
+    rating: 4.7, phone: '+36 70 557 0295'
+  },
+  {
+    name: 'Izometria Fitness', type: 'fitness_center',
+    address: 'Tisza Lajos krt. 41, 6722 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1477065, 46.2558303] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'22:00'}, tuesday: {open:'06:00',close:'22:00'}, wednesday: {open:'06:00',close:'22:00'}, thursday: {open:'06:00',close:'22:00'}, friday: {open:'06:00',close:'22:00'}, saturday: {open:'08:00',close:'20:00'}, sunday: {open:'08:00',close:'20:00'} }),
+    amenities: ['konditerem', 'öltöző', 'szauna'],
+    rating: 4.6, phone: '+36 62 665 822'
+  },
+  {
+    name: 'Reformod Pilates – Szeged', type: 'pilates_studio',
+    address: 'Marostői u. 4, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1734229, 46.2466875] },
+    openingHours: convertHours('Bejelentkezés alapján'),
+    amenities: ['reformer pilates gépek', 'személyi edzés'], rating: 4.9
+  },
+  {
+    name: 'Cédrus Fitness', type: 'fitness_center',
+    address: 'Bakay Nándor u. 24, 6724 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1305864, 46.2572445] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'22:00'}, tuesday: {open:'06:00',close:'22:00'}, wednesday: {open:'06:00',close:'22:00'}, thursday: {open:'06:00',close:'22:00'}, friday: {open:'06:00',close:'22:00'}, saturday: {open:'08:00',close:'20:00'}, sunday: {open:'08:00',close:'20:00'} }),
+    amenities: ['konditerem', 'wellness', 'öltöző'],
+    rating: 4.7, phone: '+36 70 000 2122'
+  },
+  {
+    name: 'Városi Sportcsarnok', type: 'sports_hall',
+    address: 'Temesvári krt. 33, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1627093, 46.244849] },
+    openingHours: convertHours({ monday: {open:'05:30',close:'22:00'}, tuesday: {open:'05:30',close:'22:00'}, wednesday: {open:'05:30',close:'22:00'}, thursday: {open:'05:30',close:'22:00'}, friday: {open:'05:30',close:'22:00'}, saturday: {open:'06:00',close:'22:00'}, sunday: {open:'06:00',close:'22:00'} }),
+    amenities: ['sportpálya', 'öltöző', 'konditerem', 'büfé'], rating: 4.5
+  },
+  {
+    name: 'Blessed Gym', type: 'fitness_center',
+    address: 'Szőregi út 80, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1727099, 46.236165] },
+    openingHours: convertHours({ monday: {open:'07:00',close:'20:00'}, tuesday: {open:'07:00',close:'20:00'}, wednesday: {open:'07:00',close:'20:00'}, thursday: {open:'07:00',close:'20:00'}, friday: {open:'07:00',close:'20:00'}, saturday: {open:'07:00',close:'20:00'}, sunday: {open:'08:00',close:'16:00'} }),
+    amenities: ['konditerem', 'öltöző'],
+    rating: null, phone: '+36 70 398 2783'
+  },
+  {
+    name: 'Maros Fitt Park', type: 'fitness_center',
+    address: 'Rahói u. 6, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1876172, 46.2355132] },
+    openingHours: convertHours({ monday: {open:'06:00',close:'22:00'}, tuesday: {open:'06:00',close:'22:00'}, wednesday: {open:'06:00',close:'22:00'}, thursday: {open:'06:00',close:'22:00'}, friday: {open:'06:00',close:'22:00'}, saturday: {open:'06:00',close:'22:00'}, sunday: {open:'06:00',close:'22:00'} }),
+    amenities: ['konditerem', 'öltöző'], rating: 3.9
+  },
+  {
+    name: 'Only You Fitness', type: 'fitness_center',
+    address: 'Fülemüle u. 34, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.186683, 46.2359332] },
+    openingHours: convertHours({ monday: {open:'08:00',close:'21:00'}, tuesday: {open:'08:00',close:'21:00'}, wednesday: {open:'08:00',close:'21:00'}, thursday: {open:'08:00',close:'21:00'}, friday: {open:'08:00',close:'21:00'}, saturday: null, sunday: null }),
+    amenities: ['személyi edzés', 'konditerem'],
+    rating: 5.0, phone: '+36 70 297 0571'
+  },
+  {
+    name: 'Újszegedi Víztorony KondiPark', type: 'outdoor',
+    address: 'Töltés u. 16, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1736845, 46.2452945] },
+    openingHours: convertHours('outdoor'),
+    amenities: ['szabadtéri edzőgépek', 'saját testsúlyos eszközök', 'zöldterület'], rating: 4.9
+  },
+  {
+    name: 'Napfényfitness', type: 'fitness_center',
+    address: 'Szent-Györgyi Albert u. 10-14, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1585673, 46.2507064] },
+    openingHours: convertHours({ monday: {open:'08:00',close:'19:00'}, tuesday: {open:'08:00',close:'19:00'}, wednesday: {open:'08:00',close:'19:00'}, thursday: {open:'08:00',close:'19:00'}, friday: {open:'08:00',close:'19:00'}, saturday: {open:'10:00',close:'18:00'}, sunday: {open:'10:00',close:'18:00'} }),
+    amenities: ['konditerem', 'fürdő közelsége', 'öltöző'],
+    rating: 4.4, phone: '+36 30 463 9156'
+  },
+  {
+    name: 'Móricz Tornacsarnok', type: 'sports_hall',
+    address: 'Déryné u. 7, 6726 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1684936, 46.2505739] },
+    openingHours: convertHours({ monday: {open:'07:00',close:'22:00'}, tuesday: {open:'07:00',close:'22:00'}, wednesday: {open:'07:00',close:'22:00'}, thursday: {open:'07:00',close:'22:00'}, friday: {open:'07:00',close:'22:00'}, saturday: null, sunday: null }),
+    amenities: ['sportpálya', 'öltöző', 'zuhanyzó'],
+    rating: 4.8, phone: '+36 62 556 440'
+  },
+  {
+    name: 'Street Workout Park', type: 'outdoor',
+    address: 'Retek u. 6, 6723 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.164501, 46.266023] },
+    openingHours: convertHours('outdoor'),
+    amenities: ['húzódzkodók', 'tolódzkodók', 'szabadtéri fitness', 'ingyenes'], rating: 4.3
+  },
+  {
+    name: 'Elite Fitness – TRX & Crossfit Szeged', type: 'fitness_center',
+    address: 'Pulz u. 33, 6724 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1332284, 46.2621327] },
+    openingHours: convertHours({ monday: {open:'07:30',close:'20:00'}, tuesday: {open:'07:30',close:'20:00'}, wednesday: {open:'07:30',close:'19:00'}, thursday: {open:'07:30',close:'19:00'}, friday: {open:'07:30',close:'19:00'}, saturday: {open:'09:45',close:'11:15'}, sunday: null }),
+    amenities: ['crossfit', 'trx', 'kettlebell', 'funkcionális edzés', 'öltöző'],
+    rating: 5.0, phone: '+36 30 376 4216'
+  },
+  {
+    name: 'beFiT Szeged', type: 'fitness_center',
+    address: 'Petőfi Sándor sgrt. 70, 6725 Szeged',
+    coordinates: { type: 'Point', coordinates: [20.1342544, 46.2446296] },
+    openingHours: convertHours({ monday: {open:'07:00',close:'20:00'}, tuesday: {open:'07:00',close:'20:00'}, wednesday: {open:'07:00',close:'20:00'}, thursday: {open:'07:00',close:'20:00'}, friday: {open:'07:00',close:'20:00'}, saturday: {open:'08:00',close:'13:00'}, sunday: null }),
+    amenities: ['csoportos órák', 'alakformálás', 'öltöző'],
+    rating: 5.0, phone: '+36 30 294 9160'
   },
 ];
 

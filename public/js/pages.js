@@ -1151,10 +1151,15 @@ Router.addRoute('sport-places', async (container) => {
             <div class="col-md-2">
               <label class="form-label fw-semibold">Type</label>
               <select class="form-select" id="sp-type">
+                <option value="fitness_center">Fitness Centers</option>
                 <option value="gym">Gyms</option>
+                <option value="sports_hall">Sports Halls</option>
                 <option value="park">Parks</option>
-                <option value="running_track">Running Tracks</option>
+                <option value="outdoor">Outdoor / Street Workout</option>
+                <option value="trail">Trails</option>
                 <option value="swimming_pool">Swimming Pools</option>
+                <option value="pilates_studio">Pilates / Yoga</option>
+                <option value="running_track">Running Tracks</option>
               </select>
             </div>
             <div class="col-md-2">

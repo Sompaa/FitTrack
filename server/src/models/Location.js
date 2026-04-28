@@ -13,7 +13,8 @@ const locationSchema = new mongoose.Schema({
   // Type of sport venue
   type: {
     type: String,
-    enum: ['gym', 'park', 'running_track', 'swimming_pool', 'trail', 'sports_hall', 'outdoor'],
+    enum: ['gym', 'park', 'running_track', 'swimming_pool', 'trail',
+           'sports_hall', 'outdoor', 'fitness_center', 'pilates_studio'],
     required: [true, 'Please provide a location type'],
     index: true
   },
@@ -50,6 +51,16 @@ const locationSchema = new mongoose.Schema({
   },
 
   address: {
+    type: String,
+    trim: true
+  },
+
+  phone: {
+    type: String,
+    trim: true
+  },
+
+  website: {
     type: String,
     trim: true
   },

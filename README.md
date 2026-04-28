@@ -82,7 +82,7 @@ Expected output:
 MongoDB connected for seeding
   32 workouts added
   26 recipes added
-  11 locations added
+  33 locations added
   3 demo users created
   10 Hungarian users inserted
   77 weight log entries added

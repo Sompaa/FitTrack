@@ -92,7 +92,7 @@ CLIENT_URL=http://localhost:3000
 - Some comments in `config.js` and `favorites.js` are in Hungarian — this is intentional.
 - `passport` and `passport-jwt` are installed but not used in active routes; auth is handled entirely via the custom `protect` middleware.
 - Rate limiting is applied to `/api/` only: 100 requests per 15 minutes per IP (`express-rate-limit`).
-- The canonical seed script is `server/seed.js` (run via `npm run seed`). It seeds all 7 collections: workouts (32), recipes (26), locations (11), users (13), weightlogs (77), workoutlogs (41), fitnessgoals (10).
+- The canonical seed script is `server/seed.js` (run via `npm run seed`). It seeds all 7 collections: workouts (32), recipes (26), locations (33), users (13), weightlogs (77), workoutlogs (41), fitnessgoals (10).
 - `server/src/models/FitnessGoal.js` was added manually — there is no route or controller for it yet.
 
 ## TODO
